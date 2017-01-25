@@ -2,7 +2,7 @@
 /*
  * LANGUAGE FILE for CATALOG / STORE VIEW
  * English
- * catalog/language/english/extention/module
+ * catalog/language/en-gb/extention/module
  * retargeting.php
  *
  * MODULE: Retargeting

@@ -2,7 +2,7 @@
 /*
  * LANGUAGE FILE for ADMIN VIEW
  * English
- * catalog/language/english/extension/module
+ * admin/language/en-gb/extension/module
  * retargeting.php
  *
  * MODULE: Retargeting
