@@ -5,7 +5,7 @@
  * catalog/controller/extension/module/retargeting.php
  */
 
-require 'Retargeting_REST_API_Client.php';
+require_once 'Retargeting_REST_API_Client.php';
 
 class ControllerExtensionModuleRetargeting extends Controller {
 
@@ -60,34 +60,43 @@ class ControllerExtensionModuleRetargeting extends Controller {
          * --------------------------------------
          **/
         /* XML Request intercepted, kill everything else and output */
-        if (isset($_GET['xml']) && $_GET['xml'] === 'retargeting') {
+        if (isset($_GET['json']) && $_GET['json'] === 'retargeting') {
 
             /* Modify the header */
-            header('Content-Type: application/xml');
+            header('Content-Type: application/json');
 
             /* Pull ALL products from the database */
             $products = $this->model_catalog_product->getProducts();
-
-            $output = '<products>';
+            $retargetingFeed = array();
             foreach ($products as $product) {
-                $product['quantity'] = (isset($product['quantity']) && !empty($product['quantity'])) ? 1 : 0;
-                $product_promotional_price = isset($product['special']) ? $product['special'] : 0;
-                $product_url = htmlspecialchars($this->url->link('product/product', 'product_id=' . $product['product_id']), ENT_XML1);
-                $product_image_url = $data['shop_url'] . 'image/' . $product['image'];
-                $product_image_url = htmlspecialchars($product_image_url, ENT_XML1);
-                $output .= "
-                                <product>
-                                    <id>{$product['product_id']}</id>
-                                    <stock>{$product['quantity']}</stock>
-                                    <price>{$product['price']}</price>
-                                    <promo>{$product_promotional_price}</promo>
-                                    <url>{$product_url}</url>
-                                    <image>{$product_image_url}</image>
-                                </product>
-                            ";
+              $retargetingFeed[] = array(
+                'id' => $product['product_id'],
+                'price' => round(
+                  $this->tax->calculate(
+                    $product['price'], 
+                    $product['tax_class_id'], 
+                    $this->config->get('config_tax')
+                ), 2),
+                'promo' => (
+                  isset($product['special']) ? round(
+                    $this->tax->calculate(
+                      $product['special'],
+                      $product['tax_class_id'],
+                      $this->config->get('config_tax')
+                   ), 2) 
+                   : 0),
+                'promo_price_end_date' => null,
+                'inventory' => array(
+                  'variations' => false,
+                  'stock' => (($product['quantity'] > 0) ? 1 : 0)
+                ),
+                'user_groups' => false,
+                'product_availability' => null
+              );
+              
             }
-            $output .= '</products>';
-            echo $output;
+
+            echo json_encode($retargetingFeed);
             die();
         }
         /* --- END PRODUCTS FEED  --- */
@@ -703,6 +712,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
          * 
          * via pre.order.add event
          */
+
         if ( 
             (isset($this->session->data['retargeting_save_order']) 
             && !empty($this->session->data['retargeting_save_order'])
@@ -727,6 +737,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             // Based on order id, grab the ordered products
             $order_product_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_product WHERE order_id = '" . (int)$data['order_id'] . "'");
             $data['order_product_query'] = $order_product_query;
+
             $data['saveOrder'] = "
                                         var _ra = _ra || {};
                                         _ra.saveOrderInfo = {
@@ -795,8 +806,8 @@ class ControllerExtensionModuleRetargeting extends Controller {
                     'discount_code' => $discount_code,
                     'discount' => $total_discount_value,
                     'shipping' => $shipping_value,
-                    'rebates'   =>  0,
-                    'fees'      =>  0,
+                    'rebates'  =>  0,
+                    'fees'     =>  0,
                     'total' => $total_order_value
                 );
 
