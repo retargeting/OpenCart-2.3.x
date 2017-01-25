@@ -59,7 +59,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
          *             Products feed
          * --------------------------------------
          **/
-        /* XML Request intercepted, kill everything else and output */
+        /* JSON Request intercepted, kill everything else and output */
         if (isset($_GET['json']) && $_GET['json'] === 'retargeting') {
 
             /* Modify the header */
