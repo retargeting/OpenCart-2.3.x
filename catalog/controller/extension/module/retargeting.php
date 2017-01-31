@@ -742,7 +742,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             $discount_code = isset($this->session->data['retargeting_discount_code']) ? $this->session->data['retargeting_discount_code'] : 0;
             $total_discount_value = 0;
             $shipping_value = 0;
-            $total_order_value = $data['order_data']['total'];;
+            $total_order_value = $data['order_data']['total'];
 
             // Based on order id, grab the ordered products
             $order_product_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_product WHERE order_id = '" . (int)$data['order_id'] . "'");
