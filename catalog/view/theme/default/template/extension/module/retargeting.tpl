@@ -7,6 +7,8 @@
 -->
 <!-- START RETARGETING MODULE -->
 <script>
+    // Retargeting 50.51.x
+
     (function(){
     ra_key = "<?php echo $api_key_field; ?>";
     ra_params = {
