@@ -345,9 +345,10 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 for ($i = count($data['current_category']) - 1; $i > 0; $i--) {
                     $category_id = $data['current_category'][$i];
                     $category_info = $this->model_catalog_category->getCategory($category_id);
+                    $encoded_category_info_name = htmlspecialchars($category_info['name']);
                     $data['sendCategory'] .= "
                             'id': {$category_id},
-                            'name': '{$category_info['name']}',
+                            'name': '{$encoded_category_info_name}',
                             'parent': {$category_id_parent},
                             'breadcrumb': [
                             ";
@@ -361,9 +362,10 @@ class ControllerExtensionModuleRetargeting extends Controller {
                     $category_info = $this->model_catalog_category->getCategory($category_id);
 
                     if ($i === 0) {
+
                         $data['sendCategory'] .= "{
                                                         'id': {$category_id_parent},
-                                                        'name': '{$category_info_parent['name']}',
+                                                        'name': 'Root',
                                                         'parent': false
                                                         }
                                                         ";
@@ -372,7 +374,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
                     $data['sendCategory'] .= "{
                                                     'id': {$category_id},
-                                                    'name': '{$category_info['name']}',
+                                                    'name': '{$encoded_category_info_name}',
                                                     'parent': {$category_id_parent}
                                                     },
                                                     ";
@@ -385,9 +387,10 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
                 $data['category_id'] = $data['current_category'][0];
                 $data['category_info'] = $this->model_catalog_category->getCategory($data['category_id']);
+                $encoded_data_category_info_name = htmlspecialchars($data['category_info']['name']);
                 $data['sendCategory'] .= "
                                                 'id': {$data['category_id']},
-                                                'name': '{$data['category_info']['name']}',
+                                                'name': '{$encoded_data_category_info_name}',
                                                 'parent': false,
                                                 'breadcrumb': []
                                                 ";
@@ -418,10 +421,11 @@ class ControllerExtensionModuleRetargeting extends Controller {
             if (isset($this->request->get['manufacturer_id']) && !empty($this->request->get['manufacturer_id'])) {
                 $data['brand_id'] = $this->request->get['manufacturer_id'];
                 $data['brand_name'] = $this->model_catalog_manufacturer->getManufacturer($this->request->get['manufacturer_id']);
+                $encoded_data_brand_name = htmlspecialchars($data['brand_name']['name']);
                 $data['sendBrand'] = "var _ra = _ra || {};
                                             _ra.sendBrandInfo = {
                                                                 'id': {$data['brand_id']},
-                                                                'name': '{$data['brand_name']['name']}'
+                                                                'name': '{$encoded_data_brand_name}'
                                                                 };
 
                                                                 if (_ra.ready !== undefined) {
@@ -438,120 +442,156 @@ class ControllerExtensionModuleRetargeting extends Controller {
         
 
         /*
-         * sendProduct
-         * likeFacebook
-         */
-        if ($data['current_page'] === 'product/product') {
+          * sendProduct
+          * likeFacebook
+          */
+         if ($data['current_page'] === 'product/product') {
+             $product_id = $this->request->get['product_id'];
+             $product_url = $this->url->link('product/product', 'product_id=' . $product_id);
+             $product_details = $this->model_catalog_product->getProduct($product_id);
+             $product_categories = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_to_category WHERE product_id = '" . (int)$product_id . "'");
+             $product_categories = $product_categories->rows; // Get all the subcategories for this product. Reorder its numerical indexes to ease the breadcrumb logic
+             $encoded_product_details_name = htmlspecialchars($product_details['name']);
+             /* Send the base info */
+             $data['sendProduct'] = "
+                                     var _ra = _ra || {};
+                                     _ra.sendProductInfo = {
+                                     ";
+             $data['sendProduct'] .= "
+                                     'id': $product_id,
+                                     'name': '{$encoded_product_details_name}',
+                                     'url': '{$product_url}',
+                                     'img': '{$data['shop_url']}image/{$product_details['image']}',
+                                     'price': '".round(
+                                       $this->tax->calculate(
+                                         $product_details['price'], 
+                                         $product_details['tax_class_id'], 
+                                         $this->config->get('config_tax')
+                                       ),2)."',
+                                     'promo': '". (
+                                       isset(
+                                         $product_details['special']) ? round(
+                                           $this->tax->calculate(
+                                             $product_details['special'],
+                                             $product_details['tax_class_id'], 
+                                             $this->config->get('config_tax')
+                                           ),2) : 0) ."',
+                                     'inventory': {
+                                         'variations': false,
+                                         'stock' : ".(($product_details['quantity'] > 0) ? 1 : 0)."
+                                     },
+                                     ";
+             /* Check if the product has a brand assigned */
+             if (isset($product_details['manufacturer_id'])) {
+                
+                 $encoded_product_details_manufacturer = htmlspecialchars($product_details['manufacturer']);
+                 $data['sendProduct'] .= "
+                                         'brand': {'id': {$product_details['manufacturer_id']}, 'name': '{$encoded_product_details_manufacturer}'},
+                                         ";
+             } else {
+                 $data['sendProduct'] .= "
+                                         'brand': false,
+                                         ";
+             }
+             /* Check if the product has a category assigned */
+             if (isset($product_categories) && !empty($product_categories)) {
+ 
+                 $product_cat = $this->model_catalog_product->getCategories($product_id);
 
-            $product_id = $this->request->get['product_id'];
-            $product_url = $this->url->link('product/product', 'product_id=' . $product_id);
-            $product_details = $this->model_catalog_product->getProduct($product_id);
-            $product_categories = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_to_category WHERE product_id = '" . (int)$product_id . "'");
-            $product_categories = $product_categories->rows; // Get all the subcategories for this product. Reorder its numerical indexes to ease the breadcrumb logic
+                foreach ($product_cat as $pcatid) {
+                    $c = $this->model_catalog_category->getCategory($pcatid['category_id']);
+                    if($c['status'] == 1) {
+                    }
+                }
 
-            /* Send the base info */
-            $data['sendProduct'] = "
-                                    var _ra = _ra || {};
-                                    _ra.sendProductInfo = {
-                                    ";
-            $data['sendProduct'] .= "
-                                    'id': $product_id,
-                                    'name': '{$product_details['name']}',
-                                    'url': '{$product_url}',
-                                    'img': '{$data['shop_url']}image/{$product_details['image']}',
-                                    'price': '".round($this->tax->calculate($product_details['price'], $product_details['tax_class_id'], $this->config->get('config_tax')),2)."',
-                                    'promo': '". (isset($product_details['special']) ? round($this->tax->calculate($product_details['special'],$product_details['tax_class_id'], $this->config->get('config_tax')),2) : 0) ."',
-                                    'inventory': {
-                                        'variations': false,
-                                        'stock' : ".(($product_details['quantity'] > 0) ? 1 : 0)."
-                                    },
-                                    ";
+                 $all_categories = $this->model_catalog_category->getCategories();
+                 $categoryIds = array();
+ 
+                 foreach ($all_categories as $cat) {
+                     $categoryIds[]['category_id'] = $cat['category_id'];
+                 }
 
-            /* Check if the product has a brand assigned */
-            if (isset($product_details['manufacturer_id'])) {
-                $data['sendProduct'] .= "
-                                        'brand': {'id': {$product_details['manufacturer_id']}, 'name': '{$product_details['manufacturer']}'},
-                                        ";
-            } else {
-                $data['sendProduct'] .= "
-                                        'brand': false,
-                                        ";
-            }
+                 if (!function_exists('in_array_r')) {
+                     function in_array_r($needle, $haystack, $strict = false) {
+                         foreach ($haystack as $item) {
+                             if (($strict ? $item === $needle : $item == $needle) || (is_array($item) && in_array_r($needle, $item, $strict))) {
+                                 return true;
+                             }
+                         }
+                         return false;
+                     }
+                 }    
 
-            /* Check if the product has a category assigned */
-            if (isset($product_categories) && !empty($product_categories)) {
+                $product_cat_details = [];
+                 foreach ($product_cat as $cat) {
+                     $product_cat_details[] = $this->model_catalog_category->getCategory($cat['category_id']);
+                 }
 
-                $product_cat = $this->model_catalog_product->getCategories($product_id);
-                $product_cat_details = $this->model_catalog_category->getCategory($product_cat[0]['category_id']);
+            foreach ($product_cat_details as $cdetails) {
 
-                // Resides in a parent category
-                if (isset($product_cat_details['parent_id']) && ($product_cat_details['parent_id'] == 0)) {
+                 if (isset($cdetails['parent_id']) && ($cdetails['parent_id'] == 0)) {
+                   
+                     $encoded_cdetails_name = htmlspecialchars($cdetails['name']);
+                     $data['sendProduct'] .= "
+                                             'category': 
+                                                 [{
+                                                     'id': {$cdetails['category_id']},
+                                                     'name': '{$encoded_cdetails_name}',
+                                                     'parent': false,
+                                                     'breadcrumb': []
+                                                 }],
+                                             ";
+                 // Resides in a nested category (child -> go up until parent)
+                 } else {
 
-                    $data['sendProduct'] .= "
-                                            'category': 
-                                                [{
-                                                    'id': {$product_cat_details['category_id']},
-                                                    'name': '{$product_cat_details['name']}',
-                                                    'parent': false,
-                                                    'breadcrumb': []
-                                                }],
-                                            ";
+                     $cdetails_parent = $this->model_catalog_category->getCategory($cdetails['parent_id']);
 
-                // Resides in a nested category (child -> go up until parent)
-                } else {
-
-                    $product_cat_details_parent = $this->model_catalog_category->getCategory($product_cat_details['parent_id']);
-
-                    // Get the top level category
-                    $data['sendProduct'] .= "
-                                            'category': [{
-                                                'id': {$product_cat_details['category_id']},
-                                                'name': '{$product_cat_details['name']}',
-                                                'parent': {$product_cat_details['parent_id']},
-                                                'breadcrumb': [
-                                                    {
-                                                        'id': {$product_cat_details_parent['category_id']},
-                                                        'name': '{$product_cat_details_parent['name']}',
-                                                        'parent': false
-                                                    }
-                                                ]
-                                            }
-                                            ]";
-
-                } // Close elseif
-
-            } else {
-                $data['sendProduct'] .= "
-                    'category': 
-                        [{
-                            'id': 1,
-                            'name': 'Root',
-                            'parent': false,
-                            'breadcrumb': []
-                        }],
-                    ";
-            }// Close check if product has categories assigned
-
-            $data['sendProduct'] .= "};"; // Close _ra.sendProductInfo
-            $data['sendProduct'] .= "
-                                            if (_ra.ready !== undefined) {
-                                                _ra.sendProduct(_ra.sendProductInfo);
-                                            };
-                                            ";
-            $data['js_output'] .= $data['sendProduct'];
-
-
-
-            $data['likeFacebook'] = "
-                                        if (typeof FB != 'undefined') {
-                                            FB.Event.subscribe('edge.create', function () {
-                                                _ra.likeFacebook({$product_id});
-                                            });
-                                        };
-                                    ";
-            $data['js_output'] .= $data['likeFacebook'];
-        }
-        /* --- END sendProduct  --- */
+                     // Get the top level category
+                     $data['sendProduct'] .= "
+                                             'category': [{
+                                                 'id': '{$cdetails['category_id']}',
+                                                 'name': '{$cdetails['name']}',
+                                                 'parent': '{$cdetails['parent_id']}',
+                                                 'breadcrumb': [
+                                                     {
+                                                         'id': '{$cdetails_parent['category_id']}',
+                                                         'name': '{$cdetails_parent['name']}',
+                                                         'parent': false
+                                                     }
+                                                 ]
+                                             }
+                                             ]";
+                 } // Close elseif
+             }
+             } else {
+                 $data['sendProduct'] .= "
+                     'category': 
+                         [{
+                             'id': 1,
+                             'name': 'Root',
+                             'parent': false,
+                             'breadcrumb': []
+                         }],
+                     ";
+             }// Close check if product has categories assigned
+         
+             $data['sendProduct'] .= "};"; // Close _ra.sendProductInfo
+             $data['sendProduct'] .= "
+                                             if (_ra.ready !== undefined) {
+                                                 _ra.sendProduct(_ra.sendProductInfo);
+                                             };
+                                             ";
+             $data['js_output'] .= $data['sendProduct'];
+             $data['likeFacebook'] = "
+                                         if (typeof FB != 'undefined') {
+                                             FB.Event.subscribe('edge.create', function () {
+                                                 _ra.likeFacebook({$product_id});
+                                             });
+                                         };
+                                     ";
+             $data['js_output'] .= $data['likeFacebook'];
+         }
+         /* --- END sendProduct  --- */
 
         /*
          * clickImage
@@ -653,8 +693,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             $data['js_output'] .= $data['mouseOverAddToCart'];
         }
         /* --- END mouseOverAddToCart & addToCart[v1]  --- */
-
-
+        
         /*
          * visitHelpPage ✓
          */
@@ -712,7 +751,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
          * 
          * via pre.order.add event
          */
-
+      if ($data['current_page'] === 'checkout/success') {
         if ( 
             (isset($this->session->data['retargeting_save_order']) 
             && !empty($this->session->data['retargeting_save_order'])
@@ -830,7 +869,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             
            unset($this->session->data['retargeting_save_order']);
         }
-
+      }
 
         /* ---------------------------------------------------------------------------------------------------------------------
          * Set the template path for our module & load the View
