@@ -494,85 +494,57 @@ class ControllerExtensionModuleRetargeting extends Controller {
                                          ";
              }
              /* Check if the product has a category assigned */
-             if (isset($product_categories) && !empty($product_categories)) {
+            if (isset($product_categories) && !empty($product_categories)) {
  
-                 $product_cat = $this->model_catalog_product->getCategories($product_id);
+                $product_cat = $this->model_catalog_product->getCategories($product_id);
 
+                $catDetails = array();
                 foreach ($product_cat as $pcatid) {
-                    $c = $this->model_catalog_category->getCategory($pcatid['category_id']);
-                    if($c['status'] == 1) {
+                    $categoryDetails = $this->model_catalog_category->getCategory($pcatid['category_id']);
+                    if(isset($categoryDetails['status']) && $categoryDetails['status'] == 1) {
+                        $catDetails[] = $categoryDetails;
                     }
                 }
 
-                 $all_categories = $this->model_catalog_category->getCategories();
-                 $categoryIds = array();
- 
-                 foreach ($all_categories as $cat) {
-                     $categoryIds[]['category_id'] = $cat['category_id'];
-                 }
+                $preCat = [];
+                foreach ($catDetails as $productCategory) {
+                    if (isset($productCategory['parent_id']) && ($productCategory['parent_id'] == 0)) {
+                        $preCat[] = [
+                            'id' => $productCategory['category_id'],
+                            'name' => htmlspecialchars($productCategory['name']),
+                            'parent' => false,
+                            'breadcrumb' => []
+                        ];
 
-                 if (!function_exists('in_array_r')) {
-                     function in_array_r($needle, $haystack, $strict = false) {
-                         foreach ($haystack as $item) {
-                             if (($strict ? $item === $needle : $item == $needle) || (is_array($item) && in_array_r($needle, $item, $strict))) {
-                                 return true;
-                             }
-                         }
-                         return false;
-                     }
-                 }    
+                    } else {
 
-                $product_cat_details = [];
-                 foreach ($product_cat as $cat) {
-                     $product_cat_details[] = $this->model_catalog_category->getCategory($cat['category_id']);
-                 }
+                        $breadcrumbDetails =  $this->model_catalog_category->getCategory($productCategory['parent_id']);
+                        $preCat[] = [
+                            'id' => (int)$productCategory['category_id'],
+                            'name' => htmlspecialchars($productCategory['name']),
+                            'parent' => (int)$productCategory['parent_id'],
+                            'breadcrumb' => [[
+                                'id' => (int)$breadcrumbDetails['category_id'],
+                                'name' => htmlspecialchars($breadcrumbDetails['name']),
+                                'parent' => false    
+                            ]]
+                        ];
+                    }
+                }
 
-            foreach ($product_cat_details as $cdetails) {
 
-                 if (isset($cdetails['parent_id']) && ($cdetails['parent_id'] == 0)) {
-                   
-                     $encoded_cdetails_name = htmlspecialchars($cdetails['name']);
-                     $data['sendProduct'] .= "
-                                             'category': 
-                                                 [{
-                                                     'id': {$cdetails['category_id']},
-                                                     'name': '{$encoded_cdetails_name}',
-                                                     'parent': false,
-                                                     'breadcrumb': []
-                                                 }],
-                                             ";
-                 // Resides in a nested category (child -> go up until parent)
-                 } else {
+                $data['sendProduct'] .= "'" . 'category' . "':" . json_encode($preCat);
 
-                     $cdetails_parent = $this->model_catalog_category->getCategory($cdetails['parent_id']);
+            } else {
+                $emergencyCategory[] = [
+                    'id' => 1,
+                    'name' => 'Root',
+                    'parent' => false,
+                    'breadcrumb' => []
+                ];
 
-                     // Get the top level category
-                     $data['sendProduct'] .= "
-                                             'category': [{
-                                                 'id': '{$cdetails['category_id']}',
-                                                 'name': '{$cdetails['name']}',
-                                                 'parent': '{$cdetails['parent_id']}',
-                                                 'breadcrumb': [
-                                                     {
-                                                         'id': '{$cdetails_parent['category_id']}',
-                                                         'name': '{$cdetails_parent['name']}',
-                                                         'parent': false
-                                                     }
-                                                 ]
-                                             }
-                                             ]";
-                 } // Close elseif
-             }
-             } else {
-                 $data['sendProduct'] .= "
-                     'category': 
-                         [{
-                             'id': 1,
-                             'name': 'Root',
-                             'parent': false,
-                             'breadcrumb': []
-                         }],
-                     ";
+                $data['sendProduct'] .= "'" . 'category' . "':" . json_encode($emergencyCategory);
+
              }// Close check if product has categories assigned
          
              $data['sendProduct'] .= "};"; // Close _ra.sendProductInfo
@@ -771,7 +743,12 @@ class ControllerExtensionModuleRetargeting extends Controller {
             $discount_code = isset($this->session->data['retargeting_discount_code']) ? $this->session->data['retargeting_discount_code'] : 0;
             $total_discount_value = 0;
             $shipping_value = 0;
-            $total_order_value = $data['order_data']['total'];
+            $total_order_value = $this->currency->format(
+                $data['order_data']['total'],
+                $data['order_data']['currency_code'],
+                $data['order_data']['currency_value'],
+                false
+            );
 
             // Based on order id, grab the ordered products
             $order_product_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_product WHERE order_id = '" . (int)$data['order_id'] . "'");
@@ -800,11 +777,17 @@ class ControllerExtensionModuleRetargeting extends Controller {
             /* -------------------------------------- */
             $data['saveOrder'] .= "_ra.saveOrderProducts = [";
             for ($i = count($order_product_query->rows) - 1; $i >= 0; $i--) {
+                    $product_price = $this->currency->format(
+                        $order_product_query->rows[$i]['price'],
+                        $data['order_data']['currency_code'],
+                        $data['order_data']['currency_value'],
+                        false
+                );
                 if ($i == 0) {
                     $data['saveOrder'] .= "{
                                                 'id': {$order_product_query->rows[$i]['product_id']},
                                                 'quantity': {$order_product_query->rows[$i]['quantity']},
-                                                'price': {$order_product_query->rows[$i]['price']},
+                                                'price': {$product_price},
                                                 'variation_code': ''
                                                 }";
                     break;
@@ -812,7 +795,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 $data['saveOrder'] .= "{
                                             'id': {$order_product_query->rows[$i]['product_id']},
                                             'quantity': {$order_product_query->rows[$i]['quantity']},
-                                            'price': {$order_product_query->rows[$i]['price']},
+                                            'price': {$product_price},
                                             'variation_code': ''
                                             },";
             }
