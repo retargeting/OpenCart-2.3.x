@@ -519,14 +519,15 @@ class ControllerExtensionModuleRetargeting extends Controller {
                     } else {
 
                         $breadcrumbDetails =  $this->model_catalog_category->getCategory($productCategory['parent_id']);
+
                         $preCat[] = [
                             'id' => (int)$productCategory['category_id'],
                             'name' => htmlspecialchars($productCategory['name']),
                             'parent' => (int)$productCategory['parent_id'],
                             'breadcrumb' => [[
-                                'id' => (int)$breadcrumbDetails['category_id'],
-                                'name' => htmlspecialchars($breadcrumbDetails['name']),
-                                'parent' => false    
+                                'id' => 1,
+                                'name' => 'Root',
+                                'parent' => false
                             ]]
                         ];
                     }
