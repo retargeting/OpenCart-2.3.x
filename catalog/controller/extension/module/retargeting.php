@@ -523,7 +523,8 @@ class ControllerExtensionModuleRetargeting extends Controller {
                         $preCat[] = [
                             'id' => (int)$productCategory['category_id'],
                             'name' => htmlspecialchars($productCategory['name']),
-                            'parent' => (int)$productCategory['parent_id'],
+                            'parent' => 1,
+                            // 'parent' => (int)$productCategory['parent_id'],
                             'breadcrumb' => [[
                                 'id' => 1,
                                 'name' => 'Root',
