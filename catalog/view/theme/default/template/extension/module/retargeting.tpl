@@ -7,7 +7,6 @@
 -->
 <!-- START RETARGETING MODULE -->
 <script>
-    // Retargeting 50.51.x
 
     (function(){
     ra_key = "<?php echo $api_key_field; ?>";
@@ -20,4 +19,4 @@
 	var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ra,s);})();
     <?php echo $js_output; ?>
 </script>
-<!-- END RETARGETING MODULE -->
+<!-- END RETARGETING MODULE 50.51.x-->
