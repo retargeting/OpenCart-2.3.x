@@ -783,7 +783,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             $data['saveOrder'] .= "_ra.saveOrderProducts = [";
             for ($i = count($order_product_query->rows) - 1; $i >= 0; $i--) {
                     $product_price = $this->currency->format(
-                        $order_product_query->rows[$i]['price'],
+                        $order_product_query->rows[$i]['price'] + (isset($order_product_query->rows[$i]['tax']) ? $order_product_query->rows[$i]['tax'] : 0),
                         $data['order_data']['currency_code'],
                         $data['order_data']['currency_value'],
                         false
