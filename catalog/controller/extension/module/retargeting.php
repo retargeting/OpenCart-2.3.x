@@ -457,7 +457,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 'id' => 'Root',
                 'name' => 'Root',
                 'parent' => false,
-                'breadcrumb' => []
+                'breadcrumb' => array()
              ));
              /* Send the base info */
              $data['sendProduct'] = "
@@ -521,7 +521,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                              'id' => $productCategory['category_id'],
                              'name' => htmlspecialchars($productCategory['name']),
                              'parent' => false,
-                             'breadcrumb' => []
+                             'breadcrumb' => array()
                          ));
  
                      } else {
