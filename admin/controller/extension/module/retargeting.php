@@ -232,7 +232,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             $this->error['warning'] = $this->language->get('error_permission');
         }
 
-        if (!isset($this->request->post['retargeting_apikey']) || strlen($this->request->post['retargeting_token']) < 3) {
+        if (!isset($this->request->post['retargeting_apikey']) || strlen($this->request->post['retargeting_apikey']) < 3) {
             $this->error['warning'] = $this->language->get('error_apikey_required');
         }
 
