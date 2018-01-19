@@ -51,18 +51,23 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
 
         /* Translated strings */
-        $data['heading_title']  = $this->language->get('heading_title');
-        $data['text_edit']      = $this->language->get('text_edit');
-        $data['text_enabled']   = $this->language->get('text_enabled');
-        $data['text_disabled']  = $this->language->get('text_disabled');
-        $data['text_token']   = $this->language->get('text_token');
-        $data['entry_status']   = $this->language->get('entry_status');
-        $data['entry_apikey'] = $this->language->get('entry_apikey');
-        $data['entry_token']  = $this->language->get('entry_token');
-        $data['button_save']    = $this->language->get('button_save');
-        $data['button_cancel']  = $this->language->get('button_cancel');
-        $data['token'] =  $token = $this->request->get['token'];
-        $data['route'] = $route = $this->request->get['route'];
+        $data['heading_title']                     = $this->language->get('heading_title');
+        $data['text_edit']                         = $this->language->get('text_edit');
+        $data['text_enabled']                      = $this->language->get('text_enabled');
+        $data['text_disabled']                     = $this->language->get('text_disabled');
+        $data['text_token']                        = $this->language->get('text_token');
+        $data['entry_status']                      = $this->language->get('entry_status');
+        $data['entry_recomeng_home_page_status']   = $this->language->get('entry_recomeng_home_page_status');
+        $data['recomeng_home_page_disabled']       = $this->language->get('recomeng_home_page_disabled');
+        $data['recomeng_home_page_content_bottom'] = $this->language->get('recomeng_home_page_content_bottom');
+        $data['recomeng_home_page_content_top']    = $this->language->get('recomeng_home_page_content_top');
+        $data['recomeng_home_page_content_bottom'] = $this->language->get('recomeng_home_page_content_bottom');
+        $data['entry_apikey']                      = $this->language->get('entry_apikey');
+        $data['entry_token']                       = $this->language->get('entry_token');
+        $data['button_save']                       = $this->language->get('button_save');
+        $data['button_cancel']                     = $this->language->get('button_cancel');
+        $data['token']                             = $this->request->get['token'];
+        $data['route']                             = $this->request->get['route'];
         /* --- END --- */
 
 
@@ -116,6 +121,18 @@ class ControllerExtensionModuleRetargeting extends Controller {
         } else {
             $data['retargeting_token'] = $this->config->get('retargeting_token');
         }
+
+        /* Recommendation Engine */
+
+        /* Home Page */
+
+        if (isset($this->request->post['retargeting_recomeng_home_page_status'])) {
+            $data['retargeting_recomeng_home_page_status'] = $this->request->post['retargeting_recomeng_home_page_status'];
+        } else {
+            $data['retargeting_recomeng_home_page_status'] = $this->config->get('retargeting_recomeng_home_page_status');
+        }
+
+        /* End Recommendation Engine */
         
         /* 1. setEmail */
         if (isset($this->request->post['retargeting_setEmail'])) {
@@ -195,8 +212,8 @@ class ControllerExtensionModuleRetargeting extends Controller {
                             ");
         }
 
-        if ($this->isHTMLModuleInstalled()) {
-            $this->error['warning'] = 'HTML Extension is not installed';
+        if (!$this->isHTMLModuleInstalled()) {
+            $this->error['warning'] = $this->language->get('error_html_module_required');
         }
 
         // $this->model_extension_event->addEvent('retargeting', 'catalog/model/checkout/order/addOrderHistory/after', 'extension/module/retargeting/pre_order_add');

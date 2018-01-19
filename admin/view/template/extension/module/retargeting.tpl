@@ -73,7 +73,7 @@
                         </div>
                     </div>
 
-                    <!-- Layouts - fancy looking -->
+                    <!-- Layouts -->
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="retargeting_module">Assigned Layouts:</label>
                         <div class="col-sm-10">
@@ -86,7 +86,30 @@
                     <!-- API URL -->
                     <hr />
                     
-                    <div class="col-sm-2">
+                    <!-- Webshop Personalization -->
+                    <div class="col-sm-2" style="color:forestgreen">
+                        <h3>Webshop Personalization</h3>
+                    </div>
+                    <div class="col-sm-10">
+                        <div class="well">
+                            Webshop Personalization Placeholder Text.
+                        </div>
+                    </div>
+
+                    <!-- Recommendation Engine Home Page -->
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-recomeng_home_page_status"><?php echo $entry_recomeng_home_page_status; ?></label>
+                        <div class="col-sm-10">
+                            <select name="retargeting_recomeng_home_page" id="input-recomeng_home_page_status" class="form-control">
+                                <option value="0"><?php echo $recomeng_home_page_disabled; ?></option>
+                                <option value="<?php echo $recomeng_home_page_content_top; ?>"><?php echo $recomeng_home_page_content_top; ?></option>
+                                <option value="<?php echo $recomeng_home_page_content_bottom; ?>" selected="selected"><?php echo $recomeng_home_page_content_bottom; ?></option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Fine Tuning -->
+                    <div class="col-sm-2" style="color:dodgerblue">
                         <h3>Fine tuning</h3>
                     </div>
                     <div class="col-sm-10">

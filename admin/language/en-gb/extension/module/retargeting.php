@@ -35,6 +35,11 @@ $_['button_remove'] = 'Remove';
 $_['button_add_module'] = 'Add Layout';
 $_['text_enabled'] = 'Enabled';
 $_['text_disabled'] = 'Disabled';
+// Webshop Personalization
+$_['entry_recomeng_home_page_status'] = 'Home Page:';
+$_['recomeng_home_page_disabled'] = 'Disabled';
+$_['recomeng_home_page_content_top'] = 'Display on Content Top';
+$_['recomeng_home_page_content_bottom'] = 'Display on Content Bottom';
 
 // Error
 $_['error_permission']  = 'You do not have permission to modify the Retargeting module! Check System - Users - User Groups!';
@@ -47,5 +52,6 @@ $_['entry_apikey'] = 'Tracking API Key: ';
 $_['entry_token'] = 'REST API Key: ';
 $_['error_token_required'] = '<strong>You MUST enter the REST API Key for a fully functional module.</strong>';
 $_['error_apikey_required'] = '<strong>You MUST enter the Tracking API Key for a fully functional module.</strong>';
+$_['error_html_module_required'] = '<strong>You MUST install and enable the <b>HTML Content</b> module that comes out of the box with a OpenCart installation, in order to use Retargeting\'s Webshop Personalization features!</strong>'
 
 ?>
