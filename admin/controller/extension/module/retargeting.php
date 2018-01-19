@@ -61,6 +61,8 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $data['entry_token']  = $this->language->get('entry_token');
         $data['button_save']    = $this->language->get('button_save');
         $data['button_cancel']  = $this->language->get('button_cancel');
+        $data['token'] =  $token = $this->request->get['token'];
+        $data['route'] = $route = $this->request->get['route'];
         /* --- END --- */
 
 
@@ -165,7 +167,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $data['footer'] = $this->load->controller('common/footer');
         /* --- END --- */
 
-
         /* Finally, OUTPUT */
         $this->response->setOutput($this->load->view('extension/module/retargeting.tpl', $data));
 
@@ -192,6 +193,10 @@ class ControllerExtensionModuleRetargeting extends Controller {
                                 position = 'content_bottom',
                                 sort_order = '99'
                             ");
+        }
+
+        if ($this->isHTMLModuleInstalled()) {
+            $this->error['warning'] = 'HTML Extension is not installed';
         }
 
         // $this->model_extension_event->addEvent('retargeting', 'catalog/model/checkout/order/addOrderHistory/after', 'extension/module/retargeting/pre_order_add');
@@ -241,5 +246,30 @@ class ControllerExtensionModuleRetargeting extends Controller {
         }
 
         return !$this->error;
+    }
+
+    /*
+    * @TODO: Add documentation
+    */
+    private function isHTMLModuleInstalled() {
+        $result = $this->db->query("SELECT * FROM `" . DB_PREFIX . "extension` WHERE `code` = 'html'");
+
+        if ($result->num_rows) {
+            $installed = true;
+        } else {
+            $installed = false;
+        }
+
+        return $installed;
+    }
+
+    /*
+    * @TODO: Add documentation
+    */
+    public function ajax() {
+        $token = $this->request->get['token'];
+        $route = $this->request->get['route'];
+
+        return $this->response->setOutput(json_encode(array($token, $route)));
     }
 }

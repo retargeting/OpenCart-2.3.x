@@ -162,3 +162,18 @@
     </div>
 </div>
 
+<script>
+    // alert('<?php echo  "::" . $route ?>');
+    $.ajax({
+    type: 'get',
+    url: 'index.php?route=<?php echo $route ?>/ajax&token=<?php echo $token; ?>',
+    // data: format_data,
+    dataType: 'json',
+    success: function(json) {
+          console.log(json);
+    }, error: function(e) {
+        console.log('error');
+        console.log(e);
+    }
+});
+</script>
