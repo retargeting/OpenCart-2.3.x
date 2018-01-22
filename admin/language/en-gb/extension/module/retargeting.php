@@ -9,12 +9,12 @@
  */
 
 // Heading
-$_['heading_title']     = 'Retargeting Module for OpenCart 2.3.x';
-$_['text_edit'] = 'Retargeting Module for OpenCart 2.3.x';
+$_['heading_title']     = 'Retargeting Tracker for OpenCart 2.3.x';
+$_['text_edit'] = 'Retargeting Tracker for OpenCart 2.3.x';
 
 // Text
 $_['text_module']        = 'Modules';
-$_['text_success']       = '<strong>You have successfully updated Retargeting module!</strong>';
+$_['text_success']       = '<strong>You have successfully updated Retargeting Tracker extension!</strong>';
 
 $_['api_key']            = 'Retargeting API Key:';
 $_['api_secret']          = 'Retargeting API Secret:';
@@ -25,7 +25,7 @@ $_['text_column_left']    = 'Column Left';
 $_['text_column_right']   = 'Column Right';
 
 
-$_['entry_code']        = 'Retargeting Module Code:';
+$_['entry_code']        = 'Retargeting Tracker Code:';
 $_['entry_layout']      = 'Layout:';
 $_['entry_position']    = 'Position:';
 $_['entry_status']      = 'Status:';
@@ -42,16 +42,16 @@ $_['recomeng_home_page_content_top'] = 'Display on Content Top';
 $_['recomeng_home_page_content_bottom'] = 'Display on Content Bottom';
 
 // Error
-$_['error_permission']  = 'You do not have permission to modify the Retargeting module! Check System - Users - User Groups!';
-$_['error_code']        = 'API Key is required for the module to work!';
+$_['error_permission']  = 'You do not have permission to modify the Retargeting Tracker extension! Check System - Users - User Groups!';
+$_['error_code']        = 'API Key is required for the extension to work!';
 
 
 // ONLY FOR OPENCART 2.x
-$_['text_edit'] = 'Retargeting Module for OpenCart 2.3.x';
+$_['text_edit'] = 'Retargeting Tracker for OpenCart 2.3.x';
 $_['entry_apikey'] = 'Tracking API Key: ';
 $_['entry_token'] = 'REST API Key: ';
-$_['error_token_required'] = '<strong>You MUST enter the REST API Key for a fully functional module.</strong>';
-$_['error_apikey_required'] = '<strong>You MUST enter the Tracking API Key for a fully functional module.</strong>';
-$_['error_html_module_required'] = '<strong>You MUST install and enable the <b>HTML Content</b> module that comes out of the box with a OpenCart installation, in order to use Retargeting\'s Webshop Personalization features!</strong>'
+$_['error_token_required'] = '<strong>You MUST enter the REST API Key for a fully functional extension.</strong>';
+$_['error_apikey_required'] = '<strong>You MUST enter the Tracking API Key for a fully functional extension.</strong>';
+$_['error_html_module_required'] = '<strong>You MUST install and enable the <b>HTML Content</b> extension that comes out of the box with a OpenCart installation, in order to use Retargeting\'s Webshop Personalization features!</strong>';
 
 ?>

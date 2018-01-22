@@ -1,6 +1,6 @@
 <?php
 /**
- * Retargeting Module for OpenCart 2.3.x
+ * Retargeting Tracker for OpenCart 2.3.x
  *
  * admin/controller/extension/module/retargeting.php
  */

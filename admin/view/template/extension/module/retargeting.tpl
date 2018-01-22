@@ -1,6 +1,6 @@
 <?php
 /**
- * Retargeting Module for OpenCart 2.3.x
+ * Retargeting Tracker for OpenCart 2.3.x
  *
  * admin/view/template/extension/module/retargeting.tpl
  */
@@ -39,7 +39,7 @@
                 <!-- Retargeting logo/img -->
                 <div class="row" style="min-height:45px;">
                     <div class="col-md-12">
-                        <img src="https://retargeting.ro/static/images/i/logo.png" class="img-responsive" alt="Retargeting Module for OpenCart 2.x" />
+                        <img src="https://retargeting.ro/static/images/i/logo.png" class="img-responsive" alt="Retargeting Tracker for OpenCart 2.3.x" />
                     </div>
                 </div>
 
