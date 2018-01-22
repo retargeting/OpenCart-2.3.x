@@ -10,4 +10,4 @@
 
 
 // Heading 
-$_['heading_title']  = 'Retargeting Module';
+$_['heading_title']  = 'Retargeting Extension';

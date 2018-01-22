@@ -98,12 +98,11 @@
 
                     <!-- Recommendation Engine Home Page -->
                     <div class="form-group">
-                        <label class="col-sm-2 control-label" for="input-recomeng_home_page_status"><?php echo $entry_recomeng_home_page_status; ?></label>
+                        <label class="col-sm-2 control-label" for="input-recomeng-status"><?php echo $entry_recomeng_status; ?></label>
                         <div class="col-sm-10">
-                            <select name="retargeting_recomeng_home_page" id="input-recomeng_home_page_status" class="form-control">
-                                <option value="0"><?php echo $recomeng_home_page_disabled; ?></option>
-                                <option value="<?php echo $recomeng_home_page_content_top; ?>"><?php echo $recomeng_home_page_content_top; ?></option>
-                                <option value="<?php echo $recomeng_home_page_content_bottom; ?>" selected="selected"><?php echo $recomeng_home_page_content_bottom; ?></option>
+                            <select name="retargeting_recomeng_status" id="input-recomeng-status" class="form-control">
+                                <option value="1" selected="selected"><?php echo $text_recomeng_enabled; ?></option>
+                                <option value="0"><?php echo $text_recomeng_disabled; ?></option>
                             </select>
                         </div>
                     </div>

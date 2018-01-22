@@ -36,10 +36,9 @@ $_['button_add_module'] = 'Add Layout';
 $_['text_enabled'] = 'Enabled';
 $_['text_disabled'] = 'Disabled';
 // Webshop Personalization
-$_['entry_recomeng_home_page_status'] = 'Home Page:';
-$_['recomeng_home_page_disabled'] = 'Disabled';
-$_['recomeng_home_page_content_top'] = 'Display on Content Top';
-$_['recomeng_home_page_content_bottom'] = 'Display on Content Bottom';
+$_['entry_recomeng_status'] = 'Recommendation Engine:';
+$_['text_recomeng_disabled'] = 'Disabled';
+$_['text_recomeng_enabled'] = 'Enabled';
 
 // Error
 $_['error_permission']  = 'You do not have permission to modify the Retargeting Tracker extension! Check System - Users - User Groups!';

@@ -57,11 +57,9 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $data['text_disabled']                     = $this->language->get('text_disabled');
         $data['text_token']                        = $this->language->get('text_token');
         $data['entry_status']                      = $this->language->get('entry_status');
-        $data['entry_recomeng_home_page_status']   = $this->language->get('entry_recomeng_home_page_status');
-        $data['recomeng_home_page_disabled']       = $this->language->get('recomeng_home_page_disabled');
-        $data['recomeng_home_page_content_bottom'] = $this->language->get('recomeng_home_page_content_bottom');
-        $data['recomeng_home_page_content_top']    = $this->language->get('recomeng_home_page_content_top');
-        $data['recomeng_home_page_content_bottom'] = $this->language->get('recomeng_home_page_content_bottom');
+        $data['entry_recomeng_status']             = $this->language->get('entry_recomeng_status');
+        $data['text_recomeng_enabled']             = $this->language->get('text_recomeng_enabled');
+        $data['text_recomeng_disabled']            = $this->language->get('text_recomeng_disabled');
         $data['entry_apikey']                      = $this->language->get('entry_apikey');
         $data['entry_token']                       = $this->language->get('entry_token');
         $data['button_save']                       = $this->language->get('button_save');
@@ -126,10 +124,10 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
         /* Home Page */
 
-        if (isset($this->request->post['retargeting_recomeng_home_page_status'])) {
-            $data['retargeting_recomeng_home_page_status'] = $this->request->post['retargeting_recomeng_home_page_status'];
+        if (isset($this->request->post['retargeting_recomeng_status'])) {
+            $data['retargeting_recomeng_status'] = $this->request->post['retargeting_recomeng_status'];
         } else {
-            $data['retargeting_recomeng_home_page_status'] = $this->config->get('retargeting_recomeng_home_page_status');
+            $data['retargeting_recomeng_status'] = $this->config->get('retargeting_recomeng_status');
         }
 
         /* End Recommendation Engine */
@@ -187,7 +185,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
         /* Finally, OUTPUT */
         $this->response->setOutput($this->load->view('extension/module/retargeting.tpl', $data));
 
-
     } // End index() method
 
 
@@ -200,7 +197,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $this->load->model('extension/event'); // OpenCart 2.0.1+
         $this->load->model('design/layout');
         $this->load->model('setting/setting');
-
+        
         foreach ($this->model_design_layout->getLayouts() as $layout) {
 
             $this->db->query("
@@ -212,9 +209,16 @@ class ControllerExtensionModuleRetargeting extends Controller {
                             ");
         }
 
-        if (!$this->isHTMLModuleInstalled()) {
-            $this->error['warning'] = $this->language->get('error_html_module_required');
-        }
+        $this->insertDbRecomEngHome();
+        $this->insertDbRecomEngCategory();
+        $this->insertDbRecomEngProduct();
+        $this->insertDbRecomEngCheckout();
+        $this->insertDbRecomEngThankYou();
+        $this->insertDbRecomEngSearch();
+
+        // if (!$this->isHTMLExtensionInstalled()) {
+        //     $this->error['warning'] = $this->language->get('error_html_module_required');
+        // }
 
         // $this->model_extension_event->addEvent('retargeting', 'catalog/model/checkout/order/addOrderHistory/after', 'extension/module/retargeting/pre_order_add');
         // $this->model_extension_event->addEvent('retargeting', 'catalog/model/checkout/order/addOrderHistory/after', 'extension/module/retargeting/post_order_add');
@@ -268,13 +272,14 @@ class ControllerExtensionModuleRetargeting extends Controller {
     /*
     * @TODO: Add documentation
     */
-    private function isHTMLModuleInstalled() {
-        $result = $this->db->query("SELECT * FROM `" . DB_PREFIX . "extension` WHERE `code` = 'html'");
+    private function isHTMLExtensionInstalled() {
+        $this->load->model('extension/extension');
 
-        if ($result->num_rows) {
+        $result = $this->model_extension_extension->getInstalled('module');
+        $installed = false;
+
+        if (in_array('html', $result)) {
             $installed = true;
-        } else {
-            $installed = false;
         }
 
         return $installed;
@@ -289,4 +294,139 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
         return $this->response->setOutput(json_encode(array($token, $route)));
     }
+
+    /*
+    * @TODO: Add documentation
+    */
+    private function insertDbRecomEngHome() {
+        $this->load->model('extension/module');
+
+        $this->model_extension_module->addModule(
+            'html',
+            [
+                'name' => 'Retargeting Recommendation Engine Home Page',
+                'module_description' => [
+                    "1" => [
+                        'title' => '',
+                        'description' => '<div id="retargeting-recommeng-home-page"><img src="https://nastyhobbit.org/data/media/3/happy-panda.jpg"></div>',
+                    ],
+                ],
+                'status' => "1"
+            ]
+        );
+
+        // $this->db->query("
+        //     INSERT INTO " . DB_PREFIX . "module SET
+        //         name = 'Recommendation Engine Home Page Content Bottom',
+        //         code = 'html',
+        //         setting = '{\"name\":\"Recommendation Engine Home Page Content Bottom\",\"module_description\":{\"1\":{\"title\":\"\",\"description\":\"&lt;div id=&quot;retargeting-recommeng-home-page&quot;&gt;&lt;img src=&quot;https:\/\/nastyhobbit.org\/data\/media\/3\/happy-panda.jpg&quot;&gt;&lt;\/div&gt;\"}},\"status\":\"1\"}'
+        //     ");
+        
+    }
+
+    /*
+    * @TODO: Add documentation
+    */
+    private function insertDbRecomEngCategory() {
+        $this->load->model('extension/module');
+
+        $this->model_extension_module->addModule(
+            'html',
+            [
+                'name' => 'Retargeting Recommendation Engine Category Page',
+                'module_description' => [
+                    "1" => [
+                        'title' => '',
+                        'description' => '<div id="retargeting-recommeng-category-page"><img src="https://nastyhobbit.org/data/media/3/happy-panda.jpg"></div>',
+                    ],
+                ],
+                'status' => "1"
+            ]
+        );
+    }
+
+    /*
+    * @TODO: Add documentation
+    */
+    private function insertDbRecomEngProduct() {
+        $this->load->model('extension/module');
+
+        $this->model_extension_module->addModule(
+            'html',
+            [
+                'name' => 'Retargeting Recommendation Engine Product Page',
+                'module_description' => [
+                    "1" => [
+                        'title' => '',
+                        'description' => '<div id="retargeting-recommeng-product-page"><img src="https://nastyhobbit.org/data/media/3/happy-panda.jpg"></div>',
+                    ],
+                ],
+                'status' => "1"
+            ]
+        );
+    }
+
+    /*
+    * @TODO: Add documentation
+    */
+    private function insertDbRecomEngCheckout() {
+        $this->load->model('extension/module');
+
+        $this->model_extension_module->addModule(
+            'html',
+            [
+                'name' => 'Retargeting Recommendation Engine Checkout Page',
+                'module_description' => [
+                    "1" => [
+                        'title' => '',
+                        'description' => '<div id="retargeting-recommeng-checkout-page"><img src="https://nastyhobbit.org/data/media/3/happy-panda.jpg"></div>',
+                    ],
+                ],
+                'status' => "1"
+            ]
+        );
+    }
+
+    /*
+    * @TODO: Add documentation
+    */
+    private function insertDbRecomEngThankYou() {
+        $this->load->model('extension/module');
+
+        $this->model_extension_module->addModule(
+            'html',
+            [
+                'name' => 'Retargeting Recommendation Engine Thank You Page',
+                'module_description' => [
+                    "1" => [
+                        'title' => '',
+                        'description' => '<div id="retargeting-recommeng-thank-you-page"><img src="https://nastyhobbit.org/data/media/3/happy-panda.jpg"></div>',
+                    ],
+                ],
+                'status' => "1"
+            ]
+        );
+    }
+
+    /*
+    * @TODO: Add documentation
+    */
+    private function insertDbRecomEngSearch() {
+        $this->load->model('extension/module');
+
+        $this->model_extension_module->addModule(
+            'html',
+            [
+                'name' => 'Retargeting Recommendation Engine Search Page',
+                'module_description' => [
+                    "1" => [
+                        'title' => '',
+                        'description' => '<div id="retargeting-recommeng-search-page"><img src="https://nastyhobbit.org/data/media/3/happy-panda.jpg"></div>',
+                    ],
+                ],
+                'status' => "1"
+            ]
+        );
+    }
 }
+
