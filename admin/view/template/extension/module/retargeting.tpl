@@ -67,8 +67,8 @@
                         <label class="col-sm-2 control-label" for="input-status"><?php echo $entry_status; ?></label>
                         <div class="col-sm-10">
                             <select name="retargeting_status" id="input-status" class="form-control">
-                                <option value="1" selected="selected"><?php echo $text_enabled; ?></option>
-                                <option value="0"><?php echo $text_disabled; ?></option>
+                                    <option value="1" <?php echo ($retargeting_status === true) ? 'selected="selected"' : '' ?>><?php echo $text_enabled; ?></option>
+                                    <option value="0" <?php echo ($retargeting_status === false ) ? 'selected="selected"' : '' ?>><?php echo $text_disabled; ?></option>
                             </select>
                         </div>
                     </div>
@@ -87,6 +87,8 @@
                     <hr />
                     
                     <!-- Webshop Personalization -->
+                    <div class="alert alert-info"><i class="fa fa-info-circle"></i> <?php echo $text_layout; ?></div>
+                    <br>
                     <div class="col-sm-2" style="color:forestgreen">
                         <h3>Webshop Personalization</h3>
                     </div>
@@ -96,17 +98,20 @@
                         </div>
                     </div>
 
-                    <!-- Recommendation Engine Home Page -->
+                    <!-- Recommendation Engine Enable Disable -->
                     <div class="form-group">
-                        <label class="col-sm-2 control-label" for="input-recomeng-status"><?php echo $entry_recomeng_status; ?></label>
+                        <label class="col-sm-2 control-label" for="input-recomeng"><?php echo $entry_recomeng; ?></label>
                         <div class="col-sm-10">
-                            <select name="retargeting_recomeng_status" id="input-recomeng-status" class="form-control">
-                                <option value="1" selected="selected"><?php echo $text_recomeng_enabled; ?></option>
-                                <option value="0"><?php echo $text_recomeng_disabled; ?></option>
+                            <select name="retargeting_recomeng" id="input-recomeng" class="form-control">
+                                <option value="1" <?php echo ($retargeting_recomeng === true) ? 'selected="selected"' : '' ?>><?php echo $text_recomengEnabled; ?></option>
+                                <option value="0" <?php echo ($retargeting_recomeng === false ) ? 'selected="selected"' : '' ?>><?php echo $text_recomengDisabled; ?></option>
                             </select>
                         </div>
                     </div>
-
+                    <br>
+                    <hr>
+                    <br>
+                    <br>
                     <!-- Fine Tuning -->
                     <div class="col-sm-2" style="color:dodgerblue">
                         <h3>Fine tuning</h3>
@@ -176,7 +181,7 @@
                 <div class="row" style="padding-top: 25px;">
                     <hr />
                     <div class="col-sm-12">
-                        <span class="small">You can get your <strong>Tracking API Key</strong> and <strong>REST API Key</strong> from your <a href="https://retargeting.biz/admin?action=api_redirect&token=028e36488ab8dd68eaac58e07ef8f9bf" target="_blank">Retargeting account</a>.</span>
+                        <span class="small">You can get your <strong>Tracking API Key</strong> and <strong>REST API Key</strong> from your <a href="https://retargeting.biz/" target="_blank" rel="noopener noreferrer">Retargeting account</a>.</span>
                     </div>
                 </div>
             </div>
