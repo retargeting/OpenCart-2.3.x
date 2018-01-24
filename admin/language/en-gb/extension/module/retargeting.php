@@ -9,13 +9,13 @@
  */
 
 // Heading
-$_['heading_title'] = 'Retargeting Tracker for OpenCart 2.3.x';
-$_['text_edit'] = 'Retargeting Tracker for OpenCart 2.3.x';
+$_['heading_title'] = 'Retargeting Tracker v2.3.0';
+$_['text_edit'] = 'Retargeting Tracker v2.3.0';
 
 // Text
 $_['text_module'] = 'Modules';
 $_['text_success'] = '<strong>You have successfully updated Retargeting Tracker extension!</strong>';
-$_['text_signup'] = 'Login to your <a href="https://www.retargeting.biz/" target="_blank" rel="noopener noreferral"><u>Retargeting.Biz</u></a> account and after creating your website profile copy and paste the API Keys into the fields below';
+$_['text_signup'] = 'Login to your <a href="https://www.retargeting.biz/" target="_blank" rel="noopener noreferral"><u>Retargeting.Biz</u></a> account and after creating your website profile copy and paste the API Keys into the fields below!';
 $_['text_layout'] = 'After you have <b>Enabled Recommendation Engine</b> you can add the layouts <a href="%s" target="_blank" rel="noopener noreferral" class="alert-link">here</a>!';
 $_['api_key'] = 'Retargeting API Key:';
 $_['api_secret'] = 'Retargeting API Secret:';
@@ -45,7 +45,7 @@ $_['error_permission'] = 'You do not have permission to modify the Retargeting T
 $_['error_code'] = 'API Key is required for the extension to work!';
 
 // ONLY FOR OPENCART 2.x
-$_['text_edit'] = 'Retargeting Tracker for OpenCart 2.3.x';
+$_['text_edit'] = 'Retargeting Tracker v2.3.0';
 $_['entry_apikey'] = 'Tracking API Key: ';
 $_['entry_token'] = 'REST API Key: ';
 $_['error_token_required'] = '<strong>You MUST enter the REST API Key for a fully functional extension.</strong>';

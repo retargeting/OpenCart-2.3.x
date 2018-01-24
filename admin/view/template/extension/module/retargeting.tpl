@@ -43,6 +43,12 @@
                     </div>
                 </div>
 
+                <!-- Sign up pop-up message -->
+                <?php
+                if (!isset($retargeting_apikey) && empty($retargeting_apikey)) { ?>
+                    <div class="alert alert-info"><i class="fa fa-info-circle"></i> <?php echo $text_signup; ?></div>
+                <?php } ?>
+                
                 <!-- Submission form -->
                 <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form-retargeting" class="form-horizontal">
 
@@ -86,15 +92,19 @@
                     <!-- API URL -->
                     <hr />
                     
-                    <!-- Webshop Personalization -->
-                    <div class="alert alert-info"><i class="fa fa-info-circle"></i> <?php echo $text_layout; ?></div>
+                    <!-- Recommendation Engine pop-up message -->
+                    <div class="alert alert-info" id="retargeting-recomeng-pop"><i class="fa fa-info-circle"></i> <?php echo $text_layout; ?>
+                        <button type="button" id="close-recomeng-pop" class="close" data-dismiss="alert">&times;</button>
+                    </div>
                     <br>
+                    <!-- Webshop Personalization -->
                     <div class="col-sm-2" style="color:forestgreen">
                         <h3>Webshop Personalization</h3>
                     </div>
                     <div class="col-sm-10">
                         <div class="well">
-                            Webshop Personalization Placeholder Text.
+                                Allows the display of customized products carousel on your website pages. Please go to Layouts and add the Recommendation Engine modules for their respective page.
+                                <i>i.e: 'Recommendation Engine Home Page' goes into 'Home' layer</i>
                         </div>
                     </div>
 
@@ -106,6 +116,10 @@
                                 <option value="1" <?php echo ($retargeting_recomeng === true) ? 'selected="selected"' : '' ?>><?php echo $text_recomengEnabled; ?></option>
                                 <option value="0" <?php echo ($retargeting_recomeng === false ) ? 'selected="selected"' : '' ?>><?php echo $text_recomengDisabled; ?></option>
                             </select>
+                            <br>
+                            <div class="alert alert-success" id="recomeng-response-msg" style="display: none"><b>Activated!</b>
+                                <button type="button" id="close-recomeng-pop" class="close" data-dismiss="alert">&times;</button>
+                            </div>
                         </div>
                     </div>
                     <br>
@@ -190,17 +204,51 @@
 </div>
 
 <script>
-    // alert('<?php echo  "::" . $route ?>');
-    $.ajax({
-    type: 'get',
-    url: 'index.php?route=<?php echo $route ?>/ajax&token=<?php echo $token; ?>',
-    // data: format_data,
-    dataType: 'json',
-    success: function(json) {
-          console.log(json);
-    }, error: function(e) {
-        console.log('error');
-        console.log(e);
+    jQuery(document).ready(function() {
+        jQuery("#input-recomeng").on("change", function() {
+            var state = $(this).val();
+
+            if (state == 1) {
+                var data = {'action': 'insert'};
+                recommendationEngineSettings(data);
+            } else {
+                var data = {'action': 'delete'};
+                recommendationEngineSettings(data);
+            }
+        });
+    });
+
+    function recommendationEngineSettings(data) {
+        jQuery.ajax({
+            type: 'post',
+            url: 'index.php?route=<?php echo $route ?>/ajax&token=<?php echo $token; ?>',
+            data: data,
+            dataType: 'json',
+            success: function(json) {
+                console.log(json.state);
+                if (json.state) {
+                    jQuery("#recomeng-response-msg").show();
+                } else {
+                    jQuery("#recomeng-response-msg").hide();
+                }
+            }, 
+            error: function(e) {
+                console.log('Error 01: Recommendation Engine AJAX call failed! Please contact us at info@retargeting.biz');
+                console.log(e);
+            }
+        });
     }
+
+
+// Dismiss Recommendation Engine pop-up message
+jQuery(document).ready(function() {
+	jQuery("#close-recomeng-pop").on('click', function() {
+		sessionStorage.setItem('_ra_hidden', 'true');
+	});
+
+	var retSession = sessionStorage.getItem('_ra_hidden');
+	if ( retSession  ) {
+		jQuery("#retargeting-recomeng-pop").hide();
+	}
 });
 </script>

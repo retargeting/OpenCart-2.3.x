@@ -1,6 +1,6 @@
 <?php
 /**
- * Retargeting Tracker for OpenCart 2.3.x
+ * Retargeting Tracker v2.3.0 for OpenCart 2.3.x
  *
  * admin/controller/extension/module/retargeting.php
  */
@@ -53,6 +53,7 @@ class ControllerExtensionModuleRetargeting extends Controller
         $data['text_signup'] = $this->language->get('text_signup');
         $data['text_enabled'] = $this->language->get('text_enabled');
         $data['text_disabled'] = $this->language->get('text_disabled');
+        $data['text_signup'] = $this->language->get('text_signup');
         $data['text_token'] = $this->language->get('text_token');
         $data['text_layout'] = sprintf($this->language->get('text_layout'), $this->url->link('design/layout', 'token=' . $this->session->data['token'], true));
         $data['entry_status'] = $this->language->get('entry_status');
@@ -63,8 +64,8 @@ class ControllerExtensionModuleRetargeting extends Controller
         $data['entry_token'] = $this->language->get('entry_token');
         $data['button_save'] = $this->language->get('button_save');
         $data['button_cancel'] = $this->language->get('button_cancel');
-        // $data['token'] = $this->request->get['token'];
-        // $data['route'] = $this->request->get['route'];
+        $data['token'] = $this->request->get['token'];
+        $data['route'] = $this->request->get['route'];
         /* --- END --- */
 
         /* Populate the errors array */
@@ -177,20 +178,6 @@ class ControllerExtensionModuleRetargeting extends Controller
 
         /* Finally, OUTPUT */
         $this->response->setOutput($this->load->view('extension/module/retargeting.tpl', $data));
-
-        // $this->load->model('extension/module');
-        // $module_name = "Retargeting Recommendation Engine Home Page";
-        // $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "module` WHERE `name` = '" . $module_name . "'");
-        // var_dump($query);
-        // var_dump($this->checkModuleByName('Retargeting Recommendation Engine Home Page'));
-        // $this->deleteModuleByName('Retargeting Recommendation Engine Home Page');
-        // $this->insertDbRecomEngHome();
-        // $this->insertDbRecomEngCategory();
-        // foreach ($this->model_design_layout->getLayouts() as $layouts) {
-        //     var_dump($layouts);
-        // } die;
-        // $this->deleteModuleByName('Retargeting Recommendation Engine Category Page');
-        // die;
     }
 
     // End index() method
@@ -214,13 +201,6 @@ class ControllerExtensionModuleRetargeting extends Controller
                                 sort_order = '99'
                             ");
         }
-
-        $this->insertDbRecomEngHome();
-        $this->insertDbRecomEngCategory();
-        $this->insertDbRecomEngProduct();
-        $this->insertDbRecomEngCheckout();
-        $this->insertDbRecomEngThankYou();
-        $this->insertDbRecomEngSearch();
 
         // $this->model_extension_event->addEvent('retargeting', 'catalog/model/checkout/order/addOrderHistory/after', 'extension/module/retargeting/pre_order_add');
         // $this->model_extension_event->addEvent('retargeting', 'catalog/model/checkout/order/addOrderHistory/after', 'extension/module/retargeting/post_order_add');
@@ -338,13 +318,53 @@ class ControllerExtensionModuleRetargeting extends Controller
     /*
     * @TODO: Add documentation
     */
-    // public function ajax()
-    // {
-    //     $token = $this->request->get['token'];
-    //     $route = $this->request->get['route'];
+    public function ajax()
+    {
+        $response = [
+            'status' => false
+        ];
+        $token = $this->request->get['token'];
+        $route = $this->request->get['route'];
+        $action = isset($this->request->post['action']) ? $this->request->post['action'] : '';
 
-    //     return $this->response->setOutput(json_encode([$token, $route]));
-    // }
+        if (empty($token) || empty($route) || empty($action)) {
+            return $this->response->setOutput(json_encode($response));
+        }
+        
+        if ($action == 'insert') {
+            $this->insertDbRecomEngHome();
+            $this->insertDbRecomEngCategory();
+            $this->insertDbRecomEngProduct();
+            $this->insertDbRecomEngCheckout();
+            $this->insertDbRecomEngThankYou();
+            $this->insertDbRecomEngSearch();
+
+            $response = [
+                'status' => true, 
+                'state' => true
+            ];
+
+            return $this->response->setOutput(json_encode($response));
+
+        } elseif ($action == 'delete') {
+            $this->deleteModuleByName('Retargeting Recommendation Engine Home Page');
+            $this->deleteModuleByName('Retargeting Recommendation Engine Category Page');
+            $this->deleteModuleByName('Retargeting Recommendation Engine Product Page');
+            $this->deleteModuleByName('Retargeting Recommendation Engine Checkout Page');
+            $this->deleteModuleByName('Retargeting Recommendation Engine Thank You Page');
+            $this->deleteModuleByName('Retargeting Recommendation Engine Search Page');
+
+            $response = [
+                'status' => true,
+                'state' => false
+            ];
+
+            return $this->response->setOutput(json_encode($response));
+        }
+
+        
+        
+    }
 
     /*
     * @TODO: Add documentation
