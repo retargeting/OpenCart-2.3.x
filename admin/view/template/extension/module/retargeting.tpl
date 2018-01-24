@@ -218,6 +218,12 @@
         });
     });
 
+    /**
+     * Sends AJAX request to Retargeting Tracker Admin Settings page
+     * regarding Recommendation Engine Enable and Disable statuses.
+     * @param [object] data
+     * @return object
+     */
     function recommendationEngineSettings(data) {
         jQuery.ajax({
             type: 'post',

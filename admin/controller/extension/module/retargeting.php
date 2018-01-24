@@ -259,48 +259,11 @@ class ControllerExtensionModuleRetargeting extends Controller
         return !$this->error;
     }
 
-    // private function insertRecomEngLayouts() {
-    //     $this->load->model('design/layout');
-
-    //     $layoutsArr = array();
-
-    //     foreach ($this->model_design_layout->getLayouts() as $layouts) {
-    //         $layoutsArr[] = $layouts['layout_id'];
-    //     }
-    //     foreach ($layoutsArr as $key) {
-
-    //         switch ($key) {
-    //             case "1":
-    //                 // $this->db->query("
-    //                 //     INSERT INTO " . DB_PREFIX . "layout_module SET
-    //                 //     layout_id = '{$layout['layout_id']}',
-    //                 //     code = 'retargetingTEST',
-    //                 //     position = 'content_bottom',
-    //                 //     sort_order = '99'
-    //                 // ");
-    //                 break;
-    //             case "2":
-    //                 echo "Product";
-    //                 break;
-    //             case "3":
-    //                 echo "Category";
-    //                 break;
-    //             case "7":
-    //                 echo "Checkout";
-    //                 break;
-    //             case "13":
-    //                 echo "Search";
-    //             default:
-    //                 break;
-    //         }
-
-    //     }
-
-    // }
-
-    /*
-    * @TODO: Add documentation
-    */
+    /**
+     * Checks if HTML Content extension is installed.
+     *
+     * @return boolean
+     */
     private function isHTMLExtensionInstalled()
     {
         $this->load->model('extension/extension');
@@ -315,9 +278,11 @@ class ControllerExtensionModuleRetargeting extends Controller
         return $installed;
     }
 
-    /*
-    * @TODO: Add documentation
-    */
+    /**
+     * Handles Recommendation Enable and Disable statuses.
+     *
+     * @return mixed
+     */
     public function ajax()
     {
         $response = [
@@ -330,7 +295,7 @@ class ControllerExtensionModuleRetargeting extends Controller
         if (empty($token) || empty($route) || empty($action)) {
             return $this->response->setOutput(json_encode($response));
         }
-        
+
         if ($action == 'insert') {
             $this->insertDbRecomEngHome();
             $this->insertDbRecomEngCategory();
@@ -340,12 +305,11 @@ class ControllerExtensionModuleRetargeting extends Controller
             $this->insertDbRecomEngSearch();
 
             $response = [
-                'status' => true, 
+                'status' => true,
                 'state' => true
             ];
 
             return $this->response->setOutput(json_encode($response));
-
         } elseif ($action == 'delete') {
             $this->deleteModuleByName('Retargeting Recommendation Engine Home Page');
             $this->deleteModuleByName('Retargeting Recommendation Engine Category Page');
@@ -361,14 +325,13 @@ class ControllerExtensionModuleRetargeting extends Controller
 
             return $this->response->setOutput(json_encode($response));
         }
-
-        
-        
     }
 
-    /*
-    * @TODO: Add documentation
-    */
+    /**
+     * Inserts Recommendation Engine Home Page module
+     * into HTML Content extension.
+     * @return void
+     */
     private function insertDbRecomEngHome()
     {
         $this->load->model('extension/module');
@@ -388,9 +351,11 @@ class ControllerExtensionModuleRetargeting extends Controller
         );
     }
 
-    /*
-    * @TODO: Add documentation
-    */
+    /**
+     * Inserts Recommendation Engine Category Page module
+     * into HTML Content extension.
+     * @return void
+     */
     private function insertDbRecomEngCategory()
     {
         $this->load->model('extension/module');
@@ -410,9 +375,11 @@ class ControllerExtensionModuleRetargeting extends Controller
         );
     }
 
-    /*
-    * @TODO: Add documentation
-    */
+    /**
+     * Inserts Recommendation Engine Product Page module
+     * into HTML Content extension.
+     * @return void
+     */
     private function insertDbRecomEngProduct()
     {
         $this->load->model('extension/module');
@@ -432,9 +399,11 @@ class ControllerExtensionModuleRetargeting extends Controller
         );
     }
 
-    /*
-    * @TODO: Add documentation
-    */
+    /**
+     * Inserts Recommendation Engine Checkout Page module
+     * into HTML Content extension.
+     * @return void
+     */
     private function insertDbRecomEngCheckout()
     {
         $this->load->model('extension/module');
@@ -454,9 +423,11 @@ class ControllerExtensionModuleRetargeting extends Controller
         );
     }
 
-    /*
-    * @TODO: Add documentation
-    */
+    /**
+     * Inserts Recommendation Engine Thank You Page module
+     * into HTML Content extension.
+     * @return void
+     */
     private function insertDbRecomEngThankYou()
     {
         $this->load->model('extension/module');
@@ -476,9 +447,11 @@ class ControllerExtensionModuleRetargeting extends Controller
         );
     }
 
-    /*
-    * @TODO: Add documentation
-    */
+    /**
+     * Inserts Recommendation Engine Search Page module
+     * into HTML Content extension.
+     * @return void
+     */
     private function insertDbRecomEngSearch()
     {
         $this->load->model('extension/module');
@@ -498,9 +471,12 @@ class ControllerExtensionModuleRetargeting extends Controller
         );
     }
 
-    /*
-    * @TODO: Add documentation
-    */
+    /**
+     * Checks a module by name to verify its existence
+     * into '_module' table.
+     * @param [string] $moduleName
+     * @return void
+     */
     private function checkModuleByName($moduleName)
     {
         $this->load->model('extension/module');
@@ -510,9 +486,12 @@ class ControllerExtensionModuleRetargeting extends Controller
         return 'html.' . $result['module_id'];
     }
 
-    /*
-    * @TODO: Add documentation
-    */
+    /**
+     * Deletes a module by name from '_module' &
+     * '_layout_module' table.
+     * @param [string] $moduleName
+     * @return void
+     */
     private function deleteModuleByName($moduleName)
     {
         $this->load->model('extension/module');
