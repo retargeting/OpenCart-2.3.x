@@ -132,7 +132,7 @@
                     </div>
                     <div class="col-sm-10">
                         <div class="well">
-                            Your OpenCart theme may alterate certain CSS and HTML elements that are important for Retargeting. Below you can adjust the CSS selectors which the Retargeting App will be monitoring. A detailed documentation is available at <a href="https://retargeting.biz/admin?action=api_redirect&token=5ac66ac466f3e1ec5e6fe5a040356997" target="_blank">Retargeting: fine tuning</a>. Please use only single quotes. Example: input[type='text']
+                            Your OpenCart theme may alterate certain CSS and HTML elements that are important for Retargeting. Below you can adjust the CSS selectors which the Retargeting App will be monitoring. Please use only single quotes. Example: input[type='text']
                         </div>
                     </div>
 
