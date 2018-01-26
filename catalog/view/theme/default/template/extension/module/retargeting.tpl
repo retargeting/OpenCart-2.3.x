@@ -18,4 +18,4 @@
 	var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ra,s);})();
     <?php echo $js_output; ?>
 </script>
-<!-- END RETARGETING EXTENSION 50.51.x-->
+<!-- END RETARGETING EXTENSION v2.3.0 -->
