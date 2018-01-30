@@ -16,7 +16,7 @@ $_['text_edit'] = 'Retargeting Tracker v2.3.0';
 $_['text_module'] = 'Modules';
 $_['text_success'] = '<strong>You have successfully updated Retargeting Tracker extension!</strong>';
 $_['text_signup'] = 'Login to your <a href="https://www.retargeting.biz/" target="_blank" rel="noopener noreferrer"><u>Retargeting.Biz</u></a> account and after creating your website profile copy and paste the API Keys into the fields below!';
-$_['text_layout'] = 'After you have <b>Enabled Recommendation Engine</b> you can add the layouts <a href="%s" target="_blank" rel="noopener noreferral" class="alert-link">here</a>!';
+$_['text_layout'] = 'After you have <b>Enabled Recommendation Engine</b> you can add the layouts <a href="%s" target="_blank" rel="noopener noreferrer" class="alert-link">here</a>!';
 $_['api_key'] = 'Retargeting API Key:';
 $_['api_secret'] = 'Retargeting API Secret:';
 
