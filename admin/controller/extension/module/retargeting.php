@@ -53,7 +53,6 @@ class ControllerExtensionModuleRetargeting extends Controller
         $data['text_signup'] = $this->language->get('text_signup');
         $data['text_enabled'] = $this->language->get('text_enabled');
         $data['text_disabled'] = $this->language->get('text_disabled');
-        $data['text_signup'] = $this->language->get('text_signup');
         $data['text_token'] = $this->language->get('text_token');
         $data['text_layout'] = sprintf($this->language->get('text_layout'), $this->url->link('design/layout', 'token=' . $this->session->data['token'], true));
         $data['entry_status'] = $this->language->get('entry_status');
