@@ -1,6 +1,6 @@
 <?php
 /**
- * Retargeting Module for OpenCart 2.3.x
+ * Retargeting Tracker v2.3.0 for OpenCart 2.3.x
  *
  * catalog/controller/extension/module/retargeting.php
  */
@@ -345,13 +345,13 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 for ($i = count($data['current_category']) - 1; $i > 0; $i--) {
                     $category_id = $data['current_category'][$i];
                     $category_info = $this->model_catalog_category->getCategory($category_id);
-                    $encoded_category_info_name = htmlspecialchars($category_info['name']);
+                    $decoded_category_info_name = htmlspecialchars_decode($category_info['name']);
                     $data['sendCategory'] .= "
                             'id': {$category_id},
-                            'name': '{$encoded_category_info_name}',
-                            'parent': {$category_id_parent},
+                            'name': '{$decoded_category_info_name}',
+                            'parent': {$category_info['parent_id']},
                             'breadcrumb': [
-                            ";
+                        ";
                     break;
                 }
 
@@ -362,22 +362,23 @@ class ControllerExtensionModuleRetargeting extends Controller {
                     $category_info = $this->model_catalog_category->getCategory($category_id);
 
                     if ($i === 0) {
-
+                        $decoded_category_info_parent_name = htmlspecialchars_decode($category_info_parent['name']);
                         $data['sendCategory'] .= "{
-                                                        'id': {$category_id_parent},
-                                                        'name': 'Root',
-                                                        'parent': false
-                                                        }
-                                                        ";
+                                'id': {$category_id},
+                                'name': '{$decoded_category_info_parent_name}',
+                                'parent': false
+                                }
+                            ";
                         break;
-                    }
+                    } 
 
                     $data['sendCategory'] .= "{
-                                                    'id': {$category_id},
-                                                    'name': '{$encoded_category_info_name}',
-                                                    'parent': {$category_id_parent}
-                                                    },
-                                                    ";
+                        'id': {$category_id},
+                        'name': '{$decoded_category_info_name}',
+                        'parent': {$category_id_parent}
+                        },
+                    ";
+                    
                 }
 
                 $data['sendCategory'] .= "]";
@@ -387,10 +388,10 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
                 $data['category_id'] = $data['current_category'][0];
                 $data['category_info'] = $this->model_catalog_category->getCategory($data['category_id']);
-                $encoded_data_category_info_name = htmlspecialchars($data['category_info']['name']);
+                $decoded_data_category_name = htmlspecialchars_decode($data['category_info']['name']);
                 $data['sendCategory'] .= "
                                                 'id': {$data['category_id']},
-                                                'name': '{$encoded_data_category_info_name}',
+                                                'name': '{$decoded_data_category_name}',
                                                 'parent': false,
                                                 'breadcrumb': []
                                                 ";
@@ -421,11 +422,11 @@ class ControllerExtensionModuleRetargeting extends Controller {
             if (isset($this->request->get['manufacturer_id']) && !empty($this->request->get['manufacturer_id'])) {
                 $data['brand_id'] = $this->request->get['manufacturer_id'];
                 $data['brand_name'] = $this->model_catalog_manufacturer->getManufacturer($this->request->get['manufacturer_id']);
-                $encoded_data_brand_name = htmlspecialchars($data['brand_name']['name']);
+                $decoded_data_brand_name = htmlspecialchars_decode($data['brand_name']['name']);
                 $data['sendBrand'] = "var _ra = _ra || {};
                                             _ra.sendBrandInfo = {
                                                                 'id': {$data['brand_id']},
-                                                                'name': '{$encoded_data_brand_name}'
+                                                                'name': '{$decoded_data_brand_name}'
                                                                 };
 
                                                                 if (_ra.ready !== undefined) {
@@ -451,7 +452,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
              $product_details = $this->model_catalog_product->getProduct($product_id);
              $product_categories = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_to_category WHERE product_id = '" . (int)$product_id . "'");
              $product_categories = $product_categories->rows; // Get all the subcategories for this product. Reorder its numerical indexes to ease the breadcrumb logic
-             $decoded_product_details_name = htmlspecialchars_decode($product_details['name']);
              $decoded_product_url = htmlspecialchars_decode($product_url);
              $rootCat = array(array(
                 'id' => 'Root',
@@ -466,7 +466,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                                      ";
              $data['sendProduct'] .= "
                                      'id': $product_id,
-                                     'name': '{$decoded_product_details_name}',
+                                     'name': '" . htmlspecialchars($product_details['name'], ENT_QUOTES) . "',
                                      'url': '{$decoded_product_url}',
                                      'img': '{$data['shop_url']}image/{$product_details['image']}',
                                      'price': '".round(

@@ -1,6 +1,6 @@
 <?php
 /**
- * Retargeting Module for OpenCart 2.3.x
+ * Retargeting Tracker for OpenCart 2.3.x
  *
  * admin/view/template/extension/module/retargeting.tpl
  */
@@ -39,10 +39,16 @@
                 <!-- Retargeting logo/img -->
                 <div class="row" style="min-height:45px;">
                     <div class="col-md-12">
-                        <img src="https://retargeting.ro/static/images/i/logo.png" class="img-responsive" alt="Retargeting Module for OpenCart 2.x" />
+                        <img src="https://retargeting.ro/static/images/i/logo.png" class="img-responsive" alt="Retargeting Tracker for OpenCart 2.3.x" />
                     </div>
                 </div>
 
+                <!-- Sign up pop-up message -->
+                <?php
+                if (!isset($retargeting_apikey) && empty($retargeting_apikey)) { ?>
+                    <div class="alert alert-info"><i class="fa fa-info-circle"></i> <?php echo $text_signup; ?></div>
+                <?php } ?>
+                
                 <!-- Submission form -->
                 <form action="<?php echo $action; ?>" method="post" enctype="multipart/form-data" id="form-retargeting" class="form-horizontal">
 
@@ -67,13 +73,13 @@
                         <label class="col-sm-2 control-label" for="input-status"><?php echo $entry_status; ?></label>
                         <div class="col-sm-10">
                             <select name="retargeting_status" id="input-status" class="form-control">
-                                <option value="1" selected="selected"><?php echo $text_enabled; ?></option>
-                                <option value="0"><?php echo $text_disabled; ?></option>
+                                    <option value="1" <?php echo ($retargeting_status === true) ? 'selected="selected"' : '' ?>><?php echo $text_enabled; ?></option>
+                                    <option value="0" <?php echo ($retargeting_status === false ) ? 'selected="selected"' : '' ?>><?php echo $text_disabled; ?></option>
                             </select>
                         </div>
                     </div>
 
-                    <!-- Layouts - fancy looking -->
+                    <!-- Layouts -->
                     <div class="form-group">
                         <label class="col-sm-2 control-label" for="retargeting_module">Assigned Layouts:</label>
                         <div class="col-sm-10">
@@ -86,12 +92,47 @@
                     <!-- API URL -->
                     <hr />
                     
-                    <div class="col-sm-2">
+                    <!-- Recommendation Engine pop-up message -->
+                    <div class="alert alert-info" id="retargeting-recomeng-pop"><i class="fa fa-info-circle"></i> <?php echo $text_layout; ?>
+                        <button type="button" id="close-recomeng-pop" class="close" data-dismiss="alert">&times;</button>
+                    </div>
+                    <br>
+                    <!-- Webshop Personalization -->
+                    <div class="col-sm-2" style="color:forestgreen">
+                        <h3>Webshop Personalization</h3>
+                    </div>
+                    <div class="col-sm-10">
+                        <div class="well">
+                                Allows the display of customized products carousel on your website pages. Please go to Layouts and add the Recommendation Engine modules for their respective page.
+                                <i>i.e: 'Recommendation Engine Home Page' goes into 'Home' layer</i>
+                        </div>
+                    </div>
+
+                    <!-- Recommendation Engine Enable Disable -->
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label" for="input-recomeng"><?php echo $entry_recomeng; ?></label>
+                        <div class="col-sm-10">
+                            <select name="retargeting_recomeng" id="input-recomeng" class="form-control">
+                                <option value="1" <?php echo ($retargeting_recomeng === true) ? 'selected="selected"' : '' ?>><?php echo $text_recomengEnabled; ?></option>
+                                <option value="0" <?php echo ($retargeting_recomeng === false ) ? 'selected="selected"' : '' ?>><?php echo $text_recomengDisabled; ?></option>
+                            </select>
+                            <br>
+                            <div class="alert alert-success" id="recomeng-response-msg" style="display: none"><b>Activated!</b>
+                                <button type="button" id="close-recomeng-pop" class="close" data-dismiss="alert">&times;</button>
+                            </div>
+                        </div>
+                    </div>
+                    <br>
+                    <hr>
+                    <br>
+                    <br>
+                    <!-- Fine Tuning -->
+                    <div class="col-sm-2" style="color:dodgerblue">
                         <h3>Fine tuning</h3>
                     </div>
                     <div class="col-sm-10">
                         <div class="well">
-                            Your OpenCart theme may alterate certain CSS and HTML elements that are important for Retargeting. Below you can adjust the CSS selectors which the Retargeting App will be monitoring. A detailed documentation is available at <a href="https://retargeting.biz/admin?action=api_redirect&token=5ac66ac466f3e1ec5e6fe5a040356997" target="_blank">Retargeting: fine tuning</a>. Please use only single quotes. Example: input[type='text']
+                            Your OpenCart theme may alterate certain CSS and HTML elements that are important for Retargeting. Below you can adjust the CSS selectors which the Retargeting App will be monitoring. Please use only single quotes. Example: input[type='text']
                         </div>
                     </div>
 
@@ -154,7 +195,7 @@
                 <div class="row" style="padding-top: 25px;">
                     <hr />
                     <div class="col-sm-12">
-                        <span class="small">You can get your <strong>Tracking API Key</strong> and <strong>REST API Key</strong> from your <a href="https://retargeting.biz/admin?action=api_redirect&token=028e36488ab8dd68eaac58e07ef8f9bf" target="_blank">Retargeting account</a>.</span>
+                        <span class="small">You can get your <strong>Tracking API Key</strong> and <strong>REST API Key</strong> from your <a href="https://retargeting.biz/" target="_blank" rel="noopener noreferrer">Retargeting account</a>.</span>
                     </div>
                 </div>
             </div>
@@ -162,3 +203,58 @@
     </div>
 </div>
 
+<script>
+    jQuery(document).ready(function() {
+        jQuery("#input-recomeng").on("change", function() {
+            var state = $(this).val();
+
+            if (state == 1) {
+                var data = {'action': 'insert'};
+                recommendationEngineSettings(data);
+            } else {
+                var data = {'action': 'delete'};
+                recommendationEngineSettings(data);
+            }
+        });
+    });
+
+    /**
+     * Sends AJAX request to Retargeting Tracker Admin Settings page
+     * regarding Recommendation Engine Enable and Disable statuses.
+     * @param [object] data
+     * @return object
+     */
+    function recommendationEngineSettings(data) {
+        jQuery.ajax({
+            type: 'post',
+            url: 'index.php?route=<?php echo $route ?>/ajax&token=<?php echo $token; ?>',
+            data: data,
+            dataType: 'json',
+            success: function(json) {
+                console.log(json.state);
+                if (json.state) {
+                    jQuery("#recomeng-response-msg").show();
+                } else {
+                    jQuery("#recomeng-response-msg").hide();
+                }
+            }, 
+            error: function(e) {
+                console.log('Error 01: Recommendation Engine AJAX call failed! Please contact us at info@retargeting.biz');
+                console.log(e);
+            }
+        });
+    }
+
+
+// Dismiss Recommendation Engine pop-up message
+jQuery(document).ready(function() {
+	jQuery("#close-recomeng-pop").on('click', function() {
+		sessionStorage.setItem('_ra_hidden', 'true');
+	});
+
+	var retSession = sessionStorage.getItem('_ra_hidden');
+	if ( retSession  ) {
+		jQuery("#retargeting-recomeng-pop").hide();
+	}
+});
+</script>
