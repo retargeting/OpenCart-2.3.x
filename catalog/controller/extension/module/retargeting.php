@@ -100,6 +100,172 @@ class ControllerExtensionModuleRetargeting extends Controller {
             die();
         }
         /* --- END PRODUCTS FEED  --- */
+        /**
+         * --------------------------------------
+         *             Products feed
+         * --------------------------------------
+         **/
+        /* JSON Request intercepted, kill everything else and output */
+        if (isset($_GET['csv']) && $_GET['csv'] === 'retargeting') {
+            /* Modify the header */
+            header("Content-Disposition: attachment; filename=retargeting.csv; charset=utf-8");
+            header("Content-type: text/csv");
+
+            $outstream = fopen('php://output', 'w');
+
+            $get = array(
+                'product_id'=>'product id',
+                'name'=>'product name',
+                'url'=>'product url',
+                'image'=>'image url',
+                'quantity'=>'stock',
+                'price'=>'price',
+                'special'=>'sale price',
+                'brand'=>'brand',
+                'getProductCategories'=>'category',
+                'extra'=>'extra data'
+            );
+
+            fputcsv($outstream, $get, ',', '"');
+
+            /* Pull ALL products from the database */
+            $products = $this->model_catalog_product->getProducts();
+            $retargetingFeed = array();
+            $extrastring = '';
+            $add = true;
+            foreach ($products as $product) {
+
+                $NewList = array();
+
+                foreach($get as $key=>$val){
+
+                    switch($val) {
+                        case 'image url':
+                            if($product['image']==''){
+                                $add = false;
+                                break;
+                            }
+                            if (isset($this->request->server['HTTPS']) && (($this->request->server['HTTPS'] == 'on') || ($this->request->server['HTTPS'] == '1'))) {
+                                $NewList[$val] = HTTPS_SERVER . 'image/' . $product['image'];
+                            } else {
+                                $NewList[$val] = HTTP_SERVER . 'image/' . $product['image'];
+                            }
+                        break;
+                        case 'product url':
+                            $NewList[$val] = $this->url->link('product/product', 'product_id=' . $product['product_id']);
+                        break;
+
+                        case 'stock':
+                            $NewList[$val] = ((int) $product[$key] > 0) ? 1 : 0;
+                        break;
+
+                        case 'price':
+                            if((int) $product['price'] == 0){
+                                $add = false;
+                                break;
+                            }
+                            $NewList[$val] = round(
+                                $this->tax->calculate(
+                                  $product['price'],
+                                  $product['tax_class_id'],
+                                  $this->config->get('config_tax')
+                                ), 2);
+                        break;
+
+                        case 'sale price':
+                            if($product[$key] == 0){
+                                $product[$key] = $product['price'];
+                            }
+                            $NewList[$val] = round (
+                                $this->tax->calculate($product[$key], $product['tax_class_id'], $this->config->get('config_tax'))
+                            );
+                        break;
+
+                        case 'brand':
+                            $NewList[$val] =  $product['manufacturer'];
+                        break;
+
+                        case 'category':
+                            $categories = $this->model_catalog_product->getCategories($product['product_id']);
+
+                            foreach ($categories as $category) {
+                                $path = $this->getPath($category['category_id']);
+
+                                if ($path) {
+                                    $string = '';
+
+                                    foreach (explode('_', $path) as $path_id) {
+                                        $category_info = $this->model_catalog_category->getCategory($path_id);
+
+                                        if ($category_info) {
+                                            if ($string=='') {
+                                                $string = $category_info['name'];
+                                                $extrastring = $category_info['name'];
+                                            } else {
+                                                $extrastring .= ' | ' . $category_info['name'];
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            $NewList[$val] = $string;
+                        break;
+
+                        case 'extra data':
+                            $NewList[$val] = '[]';
+                        break;
+
+                        default:
+                            $NewList[$val] = $product[$key]; 
+                    }
+                }
+                if($add) {
+                    fputcsv($outstream, $NewList, ',', '"');
+                }
+
+                $add = true;
+            }
+
+            fclose($outstream);
+            die();
+            /* Modify the header */
+            header('Content-Type: application/json');
+
+            /* Pull ALL products from the database */
+            $products = $this->model_catalog_product->getProducts();
+            $retargetingFeed = array();
+            foreach ($products as $product) {
+              $retargetingFeed[] = array(
+                'id' => $product['product_id'],
+                'price' => round(
+                  $this->tax->calculate(
+                    $product['price'], 
+                    $product['tax_class_id'], 
+                    $this->config->get('config_tax')
+                ), 2),
+                'promo' => (
+                  isset($product['special']) ? round(
+                    $this->tax->calculate(
+                      $product['special'],
+                      $product['tax_class_id'],
+                      $this->config->get('config_tax')
+                   ), 2) 
+                   : 0),
+                'promo_price_end_date' => null,
+                'inventory' => array(
+                  'variations' => false,
+                  'stock' => (($product['quantity'] > 0) ? 1 : 0)
+                ),
+                'user_groups' => false,
+                'product_availability' => null
+              );
+              
+            }
+
+            echo json_encode($retargetingFeed);
+            die();
+        }
+        /* --- END PRODUCTS FEED  --- */
 
 
 
