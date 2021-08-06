@@ -5,7 +5,6 @@
  * catalog/controller/extension/module/retargeting.php
  */
 
-require_once 'Retargeting_REST_API_Client.php';
 require_once 'retargetingconfigs.php';
 require_once 'retargetingjs.php';
 
@@ -417,15 +416,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
              * STEP 1: check $_POST and validate the API Key
              * -------------------------------------------------------------
              */
-
-            /*
-            include_once 'Retargeting_REST_API_Client.php';
-            $client = new Retargeting_REST_API_Client($data['api_key_field'], $data['api_secret_field']);
-            $client->setResponseFormat("json");
-            $client->setDecoding(false);
-            $client->setApiVersion('1.0');
-            $client->setApiUri('https://retargeting.ro/api');
-            */
 
             /* Check and adjust the incoming values */
             $discount_type = (isset($_GET['type'])) ? (filter_var($_GET['type'], FILTER_SANITIZE_NUMBER_INT)) : 'Received other than int';
