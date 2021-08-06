@@ -99,7 +99,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             'extra data'
         ], ',', '"');
 
-            $products = $this->model_catalog_product->getProducts($params);
+            $products = $this->model_catalog_product->getProducts();
 
           
 
@@ -125,7 +125,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                         $this->getProductId()))->getProductCategoriesForFeed((int)$product['product_id']);
 
 
-                if ($product['quantity'] == 0 || $product['quantity'] < 0 || $productPrice == 0 || empty($productCategoryTree[0]['name'])) {
+                if ( $productPrice == 0 || empty($productCategoryTree[0]['name']) ) {
                     continue;
                 }
 

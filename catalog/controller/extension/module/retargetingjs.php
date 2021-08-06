@@ -691,8 +691,13 @@ class JS
                     'name' => $subCategoryDetails['name'],
                     'parent' => $subCategoryDetails['parent_id'] !== '0' ? $subCategoryDetails['parent_id'] : false
                 ];
-            }
+            } else {
+                $catDetails['parent_id'] = 0;
+            } 
 
+            if(!isset($catDetails['category_id']) || !isset($catDetails['parent_id'])){
+                return $formatCategory;
+            }
             $formatCategory[] = [
                 'id'    => $catDetails['category_id'],
                 'name'  => $catDetails['name'],
