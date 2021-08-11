@@ -146,7 +146,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
                     $productImage = $this->config->get('config_url') . 'image/no_image-40x40.png';
                 }
                 
-                
                 $roundePrice = number_format($productPrice, 2, '.', '');
                 $productSpecialPrice = $productSpecialPrice > 0 ? number_format($productSpecialPrice, 2, '.', '') : $roundePrice;
                 
@@ -164,9 +163,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 ];
 
                 fputcsv($outstream, $product, ',', '"');
-
             }
-
         fclose($outstream);
         die;
 
