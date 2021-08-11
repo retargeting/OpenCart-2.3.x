@@ -1117,11 +1117,12 @@ class ControllerExtensionModuleRetargeting extends Controller {
                         'variation_code'=> ''
                     );
                 }
-
+/*
                 $orderClient = new Retargeting_REST_API_Client($restApiKey);
                 $orderClient->setResponseFormat("json");
                 $orderClient->setDecoding(false);
                 $response = $orderClient->order->save($orderInfo,$orderProducts);
+*/
             }
             
            unset($this->session->data['retargeting_save_order']);
