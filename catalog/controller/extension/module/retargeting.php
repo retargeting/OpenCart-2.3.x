@@ -145,17 +145,19 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 } else {
                     $productImage = $this->config->get('config_url') . 'image/no_image-40x40.png';
                 }
-
-                $roundePrice = number_format($productPrice, 2);
-
+                
+                
+                $roundePrice = number_format($productPrice, 2, '.', '');
+                $productSpecialPrice = $productSpecialPrice > 0 ? number_format($productSpecialPrice, 2, '.', '') : $roundePrice;
+                
                 $product = [
                     'product id' => $product['product_id'],
                     'product name' => str_replace('"', "'", $product['name']),
                     'product url' => htmlspecialchars_decode($productUrl),
                     'image url' => str_replace(' ', '%20', $productImage),
                     'stock' => $product['quantity'],
-                    'price' => str_replace(',', '.', $roundePrice),
-                    'sale price' => $productSpecialPrice > 0 ? str_replace(',', '.', number_format($productSpecialPrice, 2)) : $roundePrice,
+                    'price' => $roundePrice,
+                    'sale price' => $productSpecialPrice,
                     'brand' => $product['manufacturer'],
                     'category' => $productCategoryTree[0]['name'],
                     'extra data' => json_encode($extraData, JSON_UNESCAPED_UNICODE)
