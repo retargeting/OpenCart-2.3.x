@@ -237,7 +237,6 @@ class JS
             }
 
             $this->data .= "
-
                     _ra.sendBrandInfo = $objSetBrand;
 
                     if (_ra.ready !== undefined) {
@@ -351,14 +350,12 @@ class JS
             $this->data .= "
             /* --- addToCart --- */
             
-            document.addEventListener(\"DOMContentLoaded\", function(event) { 
-                
+
                 var retargeting_addToCart = \"{$retargetingAddToCart}\";
                 
                 document.querySelector(retargeting_addToCart).addEventListener('click', function (e) {
                     _ra.addToCart({$product['product_id']}, " . (($product['quantity'] > 0) ? 1 : 0) . ", false, function(){console.log('addToCart fired!')});
                 });
-            });
         ";
 
             //addToWishlistInfo
