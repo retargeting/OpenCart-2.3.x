@@ -193,7 +193,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
         $reCategories = [];
         foreach ($categories as $category) {
-            
+
             $reCategories[$category['category_id']] = $this->model_catalog_category->getCategory($category['category_id'])['name'];
 
         }
@@ -555,7 +555,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
             $phone_number = $this->customer->getTelephone();
 
             $data['js_output'] .= "
-                                        _ra = _ra || {};
                                         _ra.setEmailInfo = {
                                             'email': '{$email_address}',
                                             'name': '{$full_name}',
@@ -602,7 +601,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             $data['sendCategory'] = '
                         /* -- sendCategory -- */
                                             ';
-            $data['sendCategory'] = '_ra = _ra || {}; ';
+            $data['sendCategory'] = '';
             $data['sendCategory'] .= '_ra.sendCategoryInfo = {';
 
             /* We have a nested category */
@@ -688,7 +687,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 $data['brand_id'] = $this->request->get['manufacturer_id'];
                 $data['brand_name'] = $this->model_catalog_manufacturer->getManufacturer($this->request->get['manufacturer_id']);
                 $encoded_data_brand_name = htmlspecialchars($data['brand_name']['name']);
-                $data['sendBrand'] = "_ra = _ra || {};
+                $data['sendBrand'] = "
                                             _ra.sendBrandInfo = {
                                                                 'id': {$data['brand_id']},
                                                                 'name': '{$encoded_data_brand_name}'
@@ -727,7 +726,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
              ));
              /* Send the base info */
              $data['sendProduct'] = "
-                                     _ra = _ra || {};
                                      _ra.sendProductInfo = {
                                      ";
              $data['sendProduct'] .= "
@@ -876,7 +874,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 }
 
                 $data['addToWishlist'] = "
-                                            _ra = _ra || {};
                                             _ra.addToWishlistInfo = {
                                                                     'product_id': {$product_id_in_wishlist}
                                                                     };
@@ -944,7 +941,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
         if ($data['current_page'] === 'information/information') {
             $data['visitHelpPage'] = "
                                         /* -- visitHelpPage -- */
-                                        _ra = _ra || {};
                                         _ra.visitHelpPageInfo = {'visit' : true};
                                         if (_ra.ready !== undefined) {
                                             _ra.visitHelpPage();
@@ -965,7 +961,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
             $cart_products = $this->cart->getProducts(); // Use this instead of session
             $data['checkoutIds'] = "
                                         /* -- checkoutIds -- */
-                                        _ra = _ra || {};
                                         _ra.checkoutIdsInfo = [
                                     ";
 
@@ -1027,7 +1022,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
             $data['order_product_query'] = $order_product_query;
 
             $data['saveOrder'] = "
-                                        _ra = _ra || {};
                                         _ra.saveOrderInfo = {
                                             'order_no': {$order_no},
                                             'lastname': '{$lastname}',

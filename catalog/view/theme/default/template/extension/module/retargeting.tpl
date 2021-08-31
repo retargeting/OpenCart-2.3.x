@@ -18,7 +18,9 @@
 	document.location.protocol ? "https://" : "http://") + "tracking.retargeting.biz/v3/rajs/" + ra_key + ".js";
 	var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ra,s);})();
     window.addEventListener('load', function (){
-        var _ra = _ra || {};
+        if(_ra === undefined) {
+            var _ra = _ra || {};
+        }
     <?php echo $js_output; ?>
     });
 </script>

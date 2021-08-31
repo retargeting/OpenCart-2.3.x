@@ -320,7 +320,6 @@ class JS
             }
 
             $this->data .= "
-
             _ra.sendProductInfo = $objProduct;
  
             if (_ra.ready !== undefined) {
@@ -349,7 +348,6 @@ class JS
             // addToCart
             $this->data .= "
             /* --- addToCart --- */
-            
 
                 var retargeting_addToCart = \"{$retargetingAddToCart}\";
                 
