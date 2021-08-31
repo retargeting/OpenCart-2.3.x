@@ -14,14 +14,19 @@
         add_to_cart_button_id: 'button-cart',
         price_label_id: 'price_label_id',
     };
-	var ra = document.createElement("script"); ra.type ="text/javascript"; ra.async = true; ra.src = ("https:" ==
+	var ra = document.createElement("script"); ra.type ="text/javascript"; ra.async = true;
+    ra.addEventListener("load", function(event) {
+        console.log("⚡ RTG loaded ⚡");
+        StartRTG();
+    });
+    ra.src = ("https:" ==
 	document.location.protocol ? "https://" : "http://") + "tracking.retargeting.biz/v3/rajs/" + ra_key + ".js";
 	var s = document.getElementsByTagName("script")[0]; s.parentNode.insertBefore(ra,s);})();
-    window.addEventListener('load', function (){
+    function StartRTG(){
         if(_ra === undefined) {
-            var _ra = _ra || {};
+            _ra = _ra || {};
         }
-    <?php echo $js_output; ?>
-    });
+<?php echo $js_output; ?>
+    }
 </script>
 <!-- END RETARGETING MODULE 50.51.x-->

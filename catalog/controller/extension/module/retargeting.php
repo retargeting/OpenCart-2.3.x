@@ -118,6 +118,10 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
                 $productUrl = $this->url->link('product/product', 'product_id=' . $product['product_id']);
 
+                if ( !filter_var($productUrl, FILTER_VALIDATE_URL) ) {
+                    $productUrl = filter_var($productUrl, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW|FILTER_FLAG_STRIP_HIGH);
+                }
+
                     $productCategoryTree = (new JS($this,
                         $this->getCurrentPage(),
                         $this->getCurrentCategory(),
@@ -151,9 +155,9 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 
                 $product = [
                     'product id' => $product['product_id'],
-                    'product name' => str_replace('"', "'", $product['name']),
-                    'product url' => htmlspecialchars_decode($productUrl),
-                    'image url' => str_replace(' ', '%20', $productImage),
+                    'product name' => $product['name'],
+                    'product url' => str_replace(" ", "%20", $productUrl),
+                    'image url' => str_replace(" ", "%20", $productImage),
                     'stock' => $product['quantity'],
                     'price' => $roundePrice,
                     'sale price' => $productSpecialPrice,
