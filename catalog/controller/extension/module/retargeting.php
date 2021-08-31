@@ -193,8 +193,8 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
         $reCategories = [];
         foreach ($categories as $category) {
-            // $this->model_catalog_category->getCategory($category['category_id'])['name'];
-            $reCategories[$category['category_id']] = $category['name'];
+            
+            $reCategories[$category['category_id']] = $this->model_catalog_category->getCategory($category['category_id'])['name'];
 
         }
 
