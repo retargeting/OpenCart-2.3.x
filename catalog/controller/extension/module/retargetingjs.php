@@ -109,7 +109,6 @@ class JS
             }
 
             $this->data .= "
-                var _ra = _ra || {};
                 
                 _ra.setEmailInfo = $objSetEmail;
          
@@ -202,7 +201,6 @@ class JS
 
         $this->data .= "
              /* --- sendCategory --- */
-            var _ra = _ra || {};
     
             _ra.sendCategoryInfo = $objCategory;
             
@@ -239,7 +237,6 @@ class JS
             }
 
             $this->data .= "
-                    var _ra = _ra || {};
 
                     _ra.sendBrandInfo = $objSetBrand;
 
@@ -324,7 +321,6 @@ class JS
             }
 
             $this->data .= "
-            var _ra = _ra || {};
 
             _ra.sendProductInfo = $objProduct;
  
@@ -384,7 +380,6 @@ class JS
                     }
 
                     $addToWishlist = "
-                    var _ra = _ra || {};
                     
                     _ra.addToWishlistInfo = {
                         'product_id': {$product_id_in_wishlist}
@@ -430,7 +425,6 @@ class JS
     {
         $this->data .= "
             /* --- visitHelpPage --- */
-            var _ra = _ra || {};
 
             _ra.visitHelpPage = {'visit': true};
             
@@ -463,7 +457,6 @@ class JS
 
             $this->data .= "
                 /* --- checkoutIds --- */
-                var _ra = _ra || {};
 
                 _ra.checkoutIdsInfo = [
                     $productsIDs
@@ -523,7 +516,6 @@ class JS
             }
 
             $this->data .= "
-                var _ra = _ra || {};
 
                 _ra.saveOrderInfo = $objSaveOrder;
             ";

@@ -191,15 +191,14 @@ class ControllerExtensionModuleRetargeting extends Controller {
      */
     public function refactorCategories($categories) {
 
-
         $reCategories = [];
         foreach ($categories as $category) {
-
-            $reCategories[] = $this->model_catalog_category->getCategory($category['category_id'])['name'];
+            // $this->model_catalog_category->getCategory($category['category_id'])['name'];
+            $reCategories[$category['category_id']] = $category['name'];
 
         }
 
-        return implode(' | ', $reCategories);
+        return $reCategories;
 
     }
 
