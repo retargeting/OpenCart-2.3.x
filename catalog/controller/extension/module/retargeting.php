@@ -218,7 +218,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $productimages = [];
         foreach ($images as $image) {
 
-            $productimages[] = $base_url . 'image/' . $image['image'];
+            $productimages[] = str_replace(' ', '%20', $base_url . 'image/' . $image['image']);
 
         }
 
