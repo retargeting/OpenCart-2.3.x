@@ -7,7 +7,316 @@
 
 require_once 'Retargeting_REST_API_Client.php';
 
+require_once $_SERVER['DOCUMENT_ROOT'] .'/catalog/controller/extension/module/retargetingconfigs.php';
+require_once $_SERVER['DOCUMENT_ROOT'] .'/catalog/controller/extension/module/retargetingjs.php';
+
 class ControllerExtensionModuleRetargeting extends Controller {
+
+    /**
+     * Get current page
+     * @return bool
+     */
+    public function getCurrentPage()
+    {
+        if(isset($this->request->get['route']))
+        {
+            return $this->request->get['route'];
+        }
+
+        return false;
+    }
+
+    /**
+     * Get current category
+     * @return string|array
+     */
+    public function getCurrentCategory()
+    {
+        if(!empty($this->request->get['path']) && is_array($this->request->get['path']))
+        {
+            return explode('_', $this->request->get['path']);
+        }
+        else if(!empty($this->request->get['path']) )
+        {
+            return explode('_', $this->request->get['path']);
+        }
+
+        return '';
+    }
+
+    /**
+     * Get product id from request
+     * @return string
+     */
+    public function getProductId()
+    {
+        return isset($this->request->get['product_id']) ? $this->request->get['product_id'] : '';
+    }
+
+    /**
+     * Get manufactured id
+     * @return string
+     */
+    public function getManufacturedId()
+    {
+        return isset($this->request->get['manufacturer_id']) ? $this->request->get['manufacturer_id'] : '';
+    }
+
+    public static function formatPrice($price)
+    {
+        if(!is_numeric($price))
+        {
+            self::_throwException('wrongPrice');
+        }
+
+        return floatval(round($price, 2));
+    }
+
+    /**
+     * Get products feed
+     * @param $start
+     * @param $limit
+     * @throws Exception
+     */
+    public function getProductsFeed($start, $limit)
+    {
+//        header("Content-Disposition: attachment; filename=retargeting.csv");
+//        header("Content-type: text/csv");
+
+        $params = [
+            'start' => $start,
+            'limit' => $limit
+        ];
+
+        $baseUrl = (new Configs($this))->getBaseUrl();
+
+        $productsLoop = true;
+
+        $outstream = fopen('php://output', 'w');
+
+        fputcsv($outstream, [
+            'product id',
+            'product name',
+            'product url',
+            'image url',
+            'stock',
+            'price',
+            'sale price',
+            'brand',
+            'category',
+            'extra data'
+        ], ',', '"');
+
+        while($productsLoop) {
+
+            $products = $this->model_catalog_product->getProducts($params);
+
+            if(empty($products)) {
+                $productsLoop = false;
+                break;
+            }
+
+            foreach ($products as $key => $product) {
+
+                $productPrice = $this->formatPrice($product['price']);
+                $productSpecialPrice = $product['special'] !== null ? $this->formatPrice($product['special']) : 0;
+                $productPrice = $this->tax->calculate($productPrice, $product['tax_class_id'], $this->config->get('config_tax'), false, false);
+                $productPrice = round($productPrice, 2);
+
+                if ($productSpecialPrice === 0) {
+                    $productSpecialPrice = $productPrice;
+                } else {
+                    $productSpecialPrice = $this->tax->calculate($productSpecialPrice, $product['tax_class_id'], $this->config->get('config_tax'), false, false);
+                }
+
+                $productUrl = $this->url->link('product/product', 'product_id=' . $product['product_id']);
+
+                $productCategoryTree = (new JS($this,
+                    $this->getCurrentPage(),
+                    $this->getCurrentCategory(),
+                    $this->getManufacturedId(),
+                    $this->getProductId()))->getProductCategoriesForFeed((int)$product['product_id']);
+
+
+                if ($product['quantity'] == 0 || $product['quantity'] < 0 || $productPrice == 0 || empty($productCategoryTree[0]['name'])) {
+                    continue;
+                }
+
+//                $productAdditionalImages = $this->getProductImages((int)$product['product_id'], $baseUrl);
+
+
+                $extraData = $this->getExtraData([
+                    'categories' => $this->model_catalog_product->getCategories($product['product_id']),
+                    'product_id' => $product['product_id'],
+                    'base_url'   => $baseUrl
+                ]);
+
+                if (!empty($product['image'])) {
+                    $productImage = $baseUrl . 'image/' . $product['image'];
+                } else if (!empty($this->config->get('config_logo'))) {
+                    $productImage = $this->config->get('config_url') . 'image/' . $this->config->get('config_logo');
+                } else {
+                    $productImage = $this->config->get('config_url') . 'image/no_image-40x40.png';
+                }
+
+                $roundePrice = number_format($productPrice, 2, '.', '');
+
+                $price = number_format($productPrice, 2, '.', '');
+                $promoPrice = $productSpecialPrice > 0 ? number_format($productSpecialPrice, 2, '.', '') : $price;
+
+                $options = $this->model_catalog_product->getProductOptions($product['product_id']);
+
+                foreach($options as $optionValue) {
+
+                    foreach ($optionValue['product_option_value'] as $option) {
+
+                        if (empty($option['price'])) {
+                            continue;
+                        }
+
+                        $extraData['variations'][] = [
+                            'code' => $option['name'],
+                            'price' => $option['price_prefix'] === '+' ? $price + $option['price'] : $price - $option['price'],
+                            'sale_price' => $option['price_prefix'] === '+' ? $promoPrice + $option['price'] : $promoPrice - $option['price'],
+                            'stock' => $option['quantity']
+                        ];
+
+                    }
+
+                }
+
+                $product = [
+                    'product id' => $product['product_id'],
+                    'product name' => str_replace('"', "'", $product['name']),
+                    'product url' => htmlspecialchars_decode($productUrl),
+                    'image url' => str_replace(' ', '%20', $productImage),
+                    'stock' => $product['quantity'],
+                    'price' => number_format($roundePrice, 2, '.', ''),
+                    'sale price' => $productSpecialPrice > 0 ? number_format($productSpecialPrice, 2, '.', '') : $roundePrice,
+                    'brand' => $product['manufacturer'],
+                    'category' => $productCategoryTree[0]['name'],
+                    'extra data' => json_encode($extraData, JSON_UNESCAPED_UNICODE)
+                ];
+
+                fputcsv($outstream, $product, ',', '"');
+
+            }
+
+            $params['start'] += $params['limit'];
+
+        }
+
+        fclose($outstream);
+        die;
+
+    }
+
+    /**
+     * @param array $params
+     * @return array
+     */
+    private function getExtraData($params = []) {
+
+        return [
+            'margin' => null,
+            'categories' => $this->refactorCategories($params['categories']),
+            'media gallery' => $this->getImagesOfProduct($params['product_id'], $params['base_url']),
+            'in_supplier_stock' => null,
+            'variations' => []
+        ];
+
+
+    }
+
+    /**
+     * @param $categories
+     */
+    public function refactorCategories($categories) {
+
+
+        $reCategories = [];
+        foreach ($categories as $category) {
+
+            $getCategory = $this->model_catalog_category->getCategory($category['category_id']);
+
+            $reCategories[] = [$getCategory['category_id'] => $getCategory['name']];
+
+        }
+
+        return $reCategories;
+
+    }
+
+    /**
+     * @param $product_id
+     * @param $base_url
+     * @return array
+     */
+    public function getImagesOfProduct($product_id, $base_url) {
+
+        $images = $this->model_catalog_product->getProductImages($product_id);
+
+        $productimages = [];
+        foreach ($images as $image) {
+
+            $productimages[] = $base_url . 'image/' . str_replace(' ', '%20', $image['image']);
+
+        }
+
+        return $productimages;
+
+    }
+
+    public function initProductsFeed()
+    {
+        //Get configs
+        $data = (new Configs($this))->getConfigs();
+
+        if (isset($_GET))
+        {
+            //Products Feed
+            if(isset($_GET['csv']) && $_GET['csv'] === 'retargeting')
+            {
+                $start = isset($_GET['start']) ? $_GET['start'] : 0;
+                $limit = isset($_GET['limit']) ? $_GET['limit'] : 250;
+
+                $this->getProductsFeed($start, $limit);
+            }
+
+            //Plugin Version
+            if (isset($_GET['csv']) && $_GET['csv'] === 'version')
+            {
+                header('Content-Type: application/json');
+
+                if(VERSION)
+                {
+                    echo json_encode([ 'data' => [
+                        'version' => VERSION
+                    ]], JSON_PRETTY_PRINT);
+
+                    die();
+                }
+            }
+        }
+
+    }
+
+    public function getProductImages($productId, $url)
+    {
+        $additionalImgs = [];
+
+        $images = $this->model_catalog_product->getProductImages($productId);
+
+        if(!empty($images))
+        {
+            foreach ($images as $img)
+            {
+                $additionalImgs[] = str_replace(' ', '%20',$url . 'image/' . $img['image']);
+            }
+        }
+
+        return $additionalImgs;
+    }
 
     public function index() {
 
@@ -38,7 +347,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $this->load->model('catalog/manufacturer');
         $this->load->model('catalog/product');
         $this->load->model('catalog/information');
-       // $this->load->model('marketing/coupon'); /* Available only in the admin/ area */
+        // $this->load->model('marketing/coupon'); /* Available only in the admin/ area */
 //         $this->load->model('total/coupon');
 
         /* ---------------------------------------------------------------------------------------------------------------------
@@ -62,41 +371,11 @@ class ControllerExtensionModuleRetargeting extends Controller {
         /* JSON Request intercepted, kill everything else and output */
         if (isset($_GET['json']) && $_GET['json'] === 'retargeting') {
 
-            /* Modify the header */
-            header('Content-Type: application/json');
+            $start = isset($_GET['start']) ? $_GET['start'] : 0;
+            $limit = isset($_GET['limit']) ? $_GET['limit'] : 250;
 
-            /* Pull ALL products from the database */
-            $products = $this->model_catalog_product->getProducts();
-            $retargetingFeed = array();
-            foreach ($products as $product) {
-              $retargetingFeed[] = array(
-                'id' => $product['product_id'],
-                'price' => round(
-                  $this->tax->calculate(
-                    $product['price'], 
-                    $product['tax_class_id'], 
-                    $this->config->get('config_tax')
-                ), 2),
-                'promo' => (
-                  isset($product['special']) ? round(
-                    $this->tax->calculate(
-                      $product['special'],
-                      $product['tax_class_id'],
-                      $this->config->get('config_tax')
-                   ), 2) 
-                   : 0),
-                'promo_price_end_date' => null,
-                'inventory' => array(
-                  'variations' => false,
-                  'stock' => (($product['quantity'] > 0) ? 1 : 0)
-                ),
-                'user_groups' => false,
-                'product_availability' => null
-              );
-              
-            }
+            $this->getProductsFeed($start, $limit);
 
-            echo json_encode($retargetingFeed);
             die();
         }
         /* --- END PRODUCTS FEED  --- */
@@ -319,7 +598,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                                         });
                                         ";
 
-            $data['js_output'] .= $data['setEmail'];           
+            $data['js_output'] .= $data['setEmail'];
         }
         /* --- END setEmail  --- */
 
@@ -439,137 +718,137 @@ class ControllerExtensionModuleRetargeting extends Controller {
         }
         /* --- END sendBrand  --- */
 
-        
+
 
         /*
           * sendProduct
           * likeFacebook
           */
-         if ($data['current_page'] === 'product/product') {
-             $product_id = $this->request->get['product_id'];
-             $product_url = $this->url->link('product/product', 'product_id=' . $product_id);
-             $product_details = $this->model_catalog_product->getProduct($product_id);
-             $product_categories = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_to_category WHERE product_id = '" . (int)$product_id . "'");
-             $product_categories = $product_categories->rows; // Get all the subcategories for this product. Reorder its numerical indexes to ease the breadcrumb logic
-             $decoded_product_details_name = htmlspecialchars_decode($product_details['name']);
-             $decoded_product_url = htmlspecialchars_decode($product_url);
-             $rootCat = array(array(
+        if ($data['current_page'] === 'product/product') {
+            $product_id = $this->request->get['product_id'];
+            $product_url = $this->url->link('product/product', 'product_id=' . $product_id);
+            $product_details = $this->model_catalog_product->getProduct($product_id);
+            $product_categories = $this->db->query("SELECT * FROM " . DB_PREFIX . "product_to_category WHERE product_id = '" . (int)$product_id . "'");
+            $product_categories = $product_categories->rows; // Get all the subcategories for this product. Reorder its numerical indexes to ease the breadcrumb logic
+            $decoded_product_details_name = htmlspecialchars_decode($product_details['name']);
+            $decoded_product_url = htmlspecialchars_decode($product_url);
+            $rootCat = array(array(
                 'id' => 'Root',
                 'name' => 'Root',
                 'parent' => false,
                 'breadcrumb' => array()
-             ));
-             /* Send the base info */
-             $data['sendProduct'] = "
+            ));
+            /* Send the base info */
+            $data['sendProduct'] = "
                                      var _ra = _ra || {};
                                      _ra.sendProductInfo = {
                                      ";
-             $data['sendProduct'] .= "
+            $data['sendProduct'] .= "
                                      'id': $product_id,
                                      'name': '{$decoded_product_details_name}',
                                      'url': '{$decoded_product_url}',
                                      'img': '{$data['shop_url']}image/{$product_details['image']}',
                                      'price': '".round(
-                                       $this->tax->calculate(
-                                         $product_details['price'], 
-                                         $product_details['tax_class_id'], 
-                                         $this->config->get('config_tax')
-                                       ),2)."',
+                    $this->tax->calculate(
+                        $product_details['price'],
+                        $product_details['tax_class_id'],
+                        $this->config->get('config_tax')
+                    ),2)."',
                                      'promo': '". (
-                                       isset(
-                                         $product_details['special']) ? round(
-                                           $this->tax->calculate(
-                                             $product_details['special'],
-                                             $product_details['tax_class_id'], 
-                                             $this->config->get('config_tax')
-                                           ),2) : 0) ."',
+                isset(
+                    $product_details['special']) ? round(
+                    $this->tax->calculate(
+                        $product_details['special'],
+                        $product_details['tax_class_id'],
+                        $this->config->get('config_tax')
+                    ),2) : 0) ."',
                                      'inventory': {
                                          'variations': false,
                                          'stock' : ".(($product_details['quantity'] > 0) ? 1 : 0)."
                                      },
                                      ";
-             /* Check if the product has a brand assigned */
-             if (isset($product_details['manufacturer_id'])) {
-                
-                 $encoded_product_details_manufacturer = htmlspecialchars($product_details['manufacturer']);
-                 $data['sendProduct'] .= "
+            /* Check if the product has a brand assigned */
+            if (isset($product_details['manufacturer_id'])) {
+
+                $encoded_product_details_manufacturer = htmlspecialchars($product_details['manufacturer']);
+                $data['sendProduct'] .= "
                                          'brand': {'id': {$product_details['manufacturer_id']}, 'name': '{$encoded_product_details_manufacturer}'},
                                          ";
-             } else {
-                 $data['sendProduct'] .= "
+            } else {
+                $data['sendProduct'] .= "
                                          'brand': false,
                                          ";
-             }
-             /* Check if the product has a category assigned */
-             if (isset($product_categories) && !empty($product_categories)) {
-  
-                 $product_cat = $this->model_catalog_product->getCategories($product_id);
- 
-                 $catDetails = array();
-                 foreach ($product_cat as $pcatid) {
-                     $categoryDetails = $this->model_catalog_category->getCategory($pcatid['category_id']);
+            }
+            /* Check if the product has a category assigned */
+            if (isset($product_categories) && !empty($product_categories)) {
 
-                     if(isset($categoryDetails['status']) && $categoryDetails['status'] == 1) {
-                         $catDetails[] = $categoryDetails;
-                     }
-                 }
- 
-                 $preCat = array();
-                 foreach ($catDetails as $productCategory) {
-                     if (isset($productCategory['parent_id']) && ($productCategory['parent_id'] == 0)) {
-                         $preCat = array(array(
-                             'id' => $productCategory['category_id'],
-                             'name' => htmlspecialchars($productCategory['name']),
-                             'parent' => false,
-                             'breadcrumb' => array()
-                         ));
- 
-                     } else {
- 
-                         $breadcrumbDetails =  $this->model_catalog_category->getCategory($productCategory['parent_id']);
-                         $preCat = array(array(
-                             'id' => (int)$productCategory['category_id'],
-                             'name' => htmlspecialchars($productCategory['name']),
-                             'parent' => 'Root',
-                             // 'parent' => (int)$productCategory['parent_id'],
-                             'breadcrumb' => array(array(
-                                 'id' => 'Root',
-                                 'name' => 'Root',
-                                 'parent' => false    
-                             ))
-                         ));
-                         
-                     }
-                 }
-                 if ( !empty($preCat) ) {
-                   $data['sendProduct'] .= "'" . 'category' . "':" . json_encode($preCat);
-                 } else {
-                     $data['sendProduct'] .= "'" . 'category' . "':" . json_encode($rootCat);
-                 }
- 
-             } else {
- 
-                 $data['sendProduct'] .= "'" . 'category' . "':" . json_encode($rootCat);
- 
-              }// Close check if product has categories assigned
-         
-             $data['sendProduct'] .= "};"; // Close _ra.sendProductInfo
-             $data['sendProduct'] .= "
+                $product_cat = $this->model_catalog_product->getCategories($product_id);
+
+                $catDetails = array();
+                foreach ($product_cat as $pcatid) {
+                    $categoryDetails = $this->model_catalog_category->getCategory($pcatid['category_id']);
+
+                    if(isset($categoryDetails['status']) && $categoryDetails['status'] == 1) {
+                        $catDetails[] = $categoryDetails;
+                    }
+                }
+
+                $preCat = array();
+                foreach ($catDetails as $productCategory) {
+                    if (isset($productCategory['parent_id']) && ($productCategory['parent_id'] == 0)) {
+                        $preCat = array(array(
+                            'id' => $productCategory['category_id'],
+                            'name' => htmlspecialchars($productCategory['name']),
+                            'parent' => false,
+                            'breadcrumb' => array()
+                        ));
+
+                    } else {
+
+                        $breadcrumbDetails =  $this->model_catalog_category->getCategory($productCategory['parent_id']);
+                        $preCat = array(array(
+                            'id' => (int)$productCategory['category_id'],
+                            'name' => htmlspecialchars($productCategory['name']),
+                            'parent' => 'Root',
+                            // 'parent' => (int)$productCategory['parent_id'],
+                            'breadcrumb' => array(array(
+                                'id' => 'Root',
+                                'name' => 'Root',
+                                'parent' => false
+                            ))
+                        ));
+
+                    }
+                }
+                if ( !empty($preCat) ) {
+                    $data['sendProduct'] .= "'" . 'category' . "':" . json_encode($preCat);
+                } else {
+                    $data['sendProduct'] .= "'" . 'category' . "':" . json_encode($rootCat);
+                }
+
+            } else {
+
+                $data['sendProduct'] .= "'" . 'category' . "':" . json_encode($rootCat);
+
+            }// Close check if product has categories assigned
+
+            $data['sendProduct'] .= "};"; // Close _ra.sendProductInfo
+            $data['sendProduct'] .= "
                                              if (_ra.ready !== undefined) {
                                                  _ra.sendProduct(_ra.sendProductInfo);
                                              };
                                              ";
-             $data['js_output'] .= $data['sendProduct'];
-             $data['likeFacebook'] = "
+            $data['js_output'] .= $data['sendProduct'];
+            $data['likeFacebook'] = "
                                          if (typeof FB != 'undefined') {
                                              FB.Event.subscribe('edge.create', function () {
                                                  _ra.likeFacebook({$product_id});
                                              });
                                          };
                                      ";
-             $data['js_output'] .= $data['likeFacebook'];
-         }
-         /* --- END sendProduct  --- */
+            $data['js_output'] .= $data['likeFacebook'];
+        }
+        /* --- END sendProduct  --- */
 
         /*
          * clickImage
@@ -650,9 +929,9 @@ class ControllerExtensionModuleRetargeting extends Controller {
         }
         /* --- END commentOnProduct  --- */
 
-/*
-         * addToCart [v1 - class/id listener] ✓
-         */
+        /*
+                 * addToCart [v1 - class/id listener] ✓
+                 */
         if ($data['current_page'] === 'product/product') {
             $mouseOverAddToCart_product_id = $this->request->get['product_id'];
             $mouseOverAddToCart_product_info = $this->model_catalog_product->getProduct($mouseOverAddToCart_product_id);
@@ -671,7 +950,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             $data['js_output'] .= $data['mouseOverAddToCart'];
         }
         /* --- END mouseOverAddToCart & addToCart[v1]  --- */
-        
+
         /*
          * visitHelpPage ✓
          */
@@ -729,38 +1008,38 @@ class ControllerExtensionModuleRetargeting extends Controller {
          * 
          * via pre.order.add event
          */
-      if ($data['current_page'] === 'checkout/success') {
-        if ( 
-            (isset($this->session->data['retargeting_save_order']) 
-            && !empty($this->session->data['retargeting_save_order'])
-            )) {
-            $data['order_id'] = $this->session->data['retargeting_save_order'];
-            $data['order_data'] = $this->model_checkout_order->getOrder($data['order_id']);
+        if ($data['current_page'] === 'checkout/success') {
+            if (
+                (isset($this->session->data['retargeting_save_order'])
+                    && !empty($this->session->data['retargeting_save_order'])
+                )) {
+                $data['order_id'] = $this->session->data['retargeting_save_order'];
+                $data['order_data'] = $this->model_checkout_order->getOrder($data['order_id']);
 
-            $order_no = $data['order_data']['order_id'];
-            $lastname = $data['order_data']['lastname'];
-            $firstname = $data['order_data']['firstname'];
-            $email = $data['order_data']['email'];
-            $phone = $data['order_data']['telephone'];
-            $state = $data['order_data']['shipping_country'];
-            $city = $data['order_data']['shipping_city'];
-            $address = $data['order_data']['shipping_address_1'];
+                $order_no = $data['order_data']['order_id'];
+                $lastname = $data['order_data']['lastname'];
+                $firstname = $data['order_data']['firstname'];
+                $email = $data['order_data']['email'];
+                $phone = $data['order_data']['telephone'];
+                $state = $data['order_data']['shipping_country'];
+                $city = $data['order_data']['shipping_city'];
+                $address = $data['order_data']['shipping_address_1'];
 
-            $discount_code = isset($this->session->data['retargeting_discount_code']) ? $this->session->data['retargeting_discount_code'] : 0;
-            $total_discount_value = 0;
-            $shipping_value = 0;
-            $total_order_value = $this->currency->format(
-                $data['order_data']['total'],
-                $data['order_data']['currency_code'],
-                $data['order_data']['currency_value'],
-                false
-            );
+                $discount_code = isset($this->session->data['retargeting_discount_code']) ? $this->session->data['retargeting_discount_code'] : 0;
+                $total_discount_value = 0;
+                $shipping_value = 0;
+                $total_order_value = $this->currency->format(
+                    $data['order_data']['total'],
+                    $data['order_data']['currency_code'],
+                    $data['order_data']['currency_value'],
+                    false
+                );
 
-            // Based on order id, grab the ordered products
-            $order_product_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_product WHERE order_id = '" . (int)$data['order_id'] . "'");
-            $data['order_product_query'] = $order_product_query;
+                // Based on order id, grab the ordered products
+                $order_product_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_product WHERE order_id = '" . (int)$data['order_id'] . "'");
+                $data['order_product_query'] = $order_product_query;
 
-            $data['saveOrder'] = "
+                $data['saveOrder'] = "
                                         var _ra = _ra || {};
                                         _ra.saveOrderInfo = {
                                             'order_no': {$order_no},
@@ -780,85 +1059,85 @@ class ControllerExtensionModuleRetargeting extends Controller {
                                         };
                                         ";
 
-            /* -------------------------------------- */
-            $data['saveOrder'] .= "_ra.saveOrderProducts = [";
-            for ($i = count($order_product_query->rows) - 1; $i >= 0; $i--) {
+                /* -------------------------------------- */
+                $data['saveOrder'] .= "_ra.saveOrderProducts = [";
+                for ($i = count($order_product_query->rows) - 1; $i >= 0; $i--) {
                     $product_price = $this->currency->format(
                         $order_product_query->rows[$i]['price'] + (isset($order_product_query->rows[$i]['tax']) ? $order_product_query->rows[$i]['tax'] : 0),
                         $data['order_data']['currency_code'],
                         $data['order_data']['currency_value'],
                         false
-                );
-                if ($i == 0) {
-                    $data['saveOrder'] .= "{
+                    );
+                    if ($i == 0) {
+                        $data['saveOrder'] .= "{
                                                 'id': {$order_product_query->rows[$i]['product_id']},
                                                 'quantity': {$order_product_query->rows[$i]['quantity']},
                                                 'price': {$product_price},
                                                 'variation_code': ''
                                                 }";
-                    break;
-                }
-                $data['saveOrder'] .= "{
+                        break;
+                    }
+                    $data['saveOrder'] .= "{
                                             'id': {$order_product_query->rows[$i]['product_id']},
                                             'quantity': {$order_product_query->rows[$i]['quantity']},
                                             'price': {$product_price},
                                             'variation_code': ''
                                             },";
-            }
-            $data['saveOrder'] .= "];";
-            /* -------------------------------------- */
+                }
+                $data['saveOrder'] .= "];";
+                /* -------------------------------------- */
 
-            $data['saveOrder'] .= "
+                $data['saveOrder'] .= "
                                         if( _ra.ready !== undefined ) {
                                             _ra.saveOrder(_ra.saveOrderInfo, _ra.saveOrderProducts);
                                         }";
-            $data['js_output'] .= $data['saveOrder'];
-            
-            /*
-            * REST API Save Order
-            */
+                $data['js_output'] .= $data['saveOrder'];
 
-            $apiKey = $this->config->get('retargeting_apikey');
-            $restApiKey = $this->config->get('retargeting_token');
+                /*
+                * REST API Save Order
+                */
 
-            if($restApiKey && $restApiKey != ''){
-                $orderInfo = array(
-                    'order_no' => $order_no,
-                    'lastname' => $lastname,
-                    'firstname' => $firstname,
-                    'email' => $email,
-                    'phone' => $phone,
-                    'state' => $state,
-                    'city' => $city,
-                    'address' => $address,
-                    'discount_code' => $discount_code,
-                    'discount' => $total_discount_value,
-                    'shipping' => $shipping_value,
-                    'rebates'  =>  0,
-                    'fees'     =>  0,
-                    'total' => $total_order_value
-                );
+                $apiKey = $this->config->get('retargeting_apikey');
+                $restApiKey = $this->config->get('retargeting_token');
 
-                $orderProducts = array();
-
-                foreach($order_product_query->rows as $orderedProduct) {
-                    $orderProducts[] = array(
-                        'id' => $orderedProduct['product_id'],
-                        'quantity'=> $orderedProduct['quantity'],
-                        'price'=> $orderedProduct['price'],
-                        'variation_code'=> ''
+                if($restApiKey && $restApiKey != ''){
+                    $orderInfo = array(
+                        'order_no' => $order_no,
+                        'lastname' => $lastname,
+                        'firstname' => $firstname,
+                        'email' => $email,
+                        'phone' => $phone,
+                        'state' => $state,
+                        'city' => $city,
+                        'address' => $address,
+                        'discount_code' => $discount_code,
+                        'discount' => $total_discount_value,
+                        'shipping' => $shipping_value,
+                        'rebates'  =>  0,
+                        'fees'     =>  0,
+                        'total' => $total_order_value
                     );
+
+                    $orderProducts = array();
+
+                    foreach($order_product_query->rows as $orderedProduct) {
+                        $orderProducts[] = array(
+                            'id' => $orderedProduct['product_id'],
+                            'quantity'=> $orderedProduct['quantity'],
+                            'price'=> $orderedProduct['price'],
+                            'variation_code'=> ''
+                        );
+                    }
+
+                    $orderClient = new Retargeting_REST_API_Client($restApiKey);
+                    $orderClient->setResponseFormat("json");
+                    $orderClient->setDecoding(false);
+                    $response = $orderClient->order->save($orderInfo,$orderProducts);
                 }
 
-                $orderClient = new Retargeting_REST_API_Client($restApiKey);
-                $orderClient->setResponseFormat("json");
-                $orderClient->setDecoding(false);
-                $response = $orderClient->order->save($orderInfo,$orderProducts);
+                unset($this->session->data['retargeting_save_order']);
             }
-            
-           unset($this->session->data['retargeting_save_order']);
         }
-      }
 
         /* ---------------------------------------------------------------------------------------------------------------------
          * Set the template path for our module & load the View
