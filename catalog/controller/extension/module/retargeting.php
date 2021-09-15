@@ -552,7 +552,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $data['wishlist'] = !empty($this->session->data['wishlist']) ? $this->session->data['wishlist'] : false;
         $data['current_page'] = isset($this->request->get['route']) ? $this->request->get['route'] : false;
         $data['current_category'] = isset($this->request->get['path']) ? explode('_', $this->request->get['path']) : '';
-        $data['count_categories'] = (count($data['current_category']) > 0) ? (count($data['current_category'])) : 0;
+        $data['count_categories'] = isset($data['current_category']) ? count($data['current_category']) : 0;
         $data['js_output'] = "/* --- START Retargeting --- */\n\n";
         /* --- END pre-data processing  --- */
 
