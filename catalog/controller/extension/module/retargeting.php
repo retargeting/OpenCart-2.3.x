@@ -5,11 +5,16 @@
  * catalog/controller/extension/module/retargeting.php
  */
 
+// require_once 'Retargeting_REST_API_Client.php';
 require_once 'retargetingconfigs.php';
 require_once 'retargetingjs.php';
 
 class ControllerExtensionModuleRetargeting extends Controller {
 
+    public $replace = [
+        ['amp;'," "," ","","|"],
+        ['',"%20","%C2%A0","%C2%96","%7C"]
+    ];
     
     /**
      * Get current page
@@ -79,9 +84,13 @@ class ControllerExtensionModuleRetargeting extends Controller {
      */
     public function getProductsFeed()
     {
+
         header("Content-Disposition: attachment; filename=retargeting.csv");
         header("Content-type: text/csv");
-
+        $params = [
+            'start' => 0,
+            'limit' => 250
+        ];
         $baseUrl = (new Configs($this))->getBaseUrl();
        
         $outstream = fopen('php://output', 'w');
@@ -99,9 +108,16 @@ class ControllerExtensionModuleRetargeting extends Controller {
             'extra data'
         ], ',', '"');
 
-            $products = $this->model_catalog_product->getProducts();
+        $productsLoop = true;
 
-          
+        while($productsLoop) {
+
+            $products = $this->model_catalog_product->getProducts($params);
+
+            if(empty($products)) {
+                $productsLoop = false;
+                break;
+            }
 
             foreach ($products as $key => $product) {
 
@@ -115,12 +131,8 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 } else {
                     $productSpecialPrice = $this->tax->calculate($productSpecialPrice, $product['tax_class_id'], $this->config->get('config_tax'), false, false);
                 }
-
+                
                 $productUrl = $this->url->link('product/product', 'product_id=' . $product['product_id']);
-
-                if ( !filter_var($productUrl, FILTER_VALIDATE_URL) ) {
-                    $productUrl = filter_var($productUrl, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW|FILTER_FLAG_STRIP_HIGH);
-                }
 
                     $productCategoryTree = (new JS($this,
                         $this->getCurrentPage(),
@@ -128,36 +140,28 @@ class ControllerExtensionModuleRetargeting extends Controller {
                         $this->getManufacturedId(),
                         $this->getProductId()))->getProductCategoriesForFeed((int)$product['product_id']);
 
-
-                if ( $productPrice == 0 || empty($productCategoryTree[0]['name']) ) {
+                if ( $productPrice == 0 ||
+                    empty($productCategoryTree[0]['name']) ||
+                    empty($product['image']) ) {
                     continue;
                 }
-
-//                $productAdditionalImages = $this->getProductImages((int)$product['product_id'], $baseUrl);
-
-
+                //              $productAdditionalImages = $this->getProductImages((int)$product['product_id'], $baseUrl);
                 $extraData = $this->getExtraData([
                     'categories' => $this->model_catalog_product->getCategories($product['product_id']),
                     'product_id' => $product['product_id'],
                     'base_url'   => $baseUrl
                 ]);
-
-                if (!empty($product['image'])) {
-                    $productImage = $baseUrl . 'image/' . $product['image'];
-                } else if (!empty($this->config->get('config_logo'))) {
-                    $productImage = $this->config->get('config_url') . 'image/' . $this->config->get('config_logo');
-                } else {
-                    $productImage = $this->config->get('config_url') . 'image/no_image-40x40.png';
-                }
                 
+                $productImage = $baseUrl . str_replace(' ', '%20', 'image/' . $product['image']);
+
                 $roundePrice = number_format($productPrice, 2, '.', '');
-                $productSpecialPrice = $productSpecialPrice > 0 ? number_format($productSpecialPrice, 2, '.', '') : $roundePrice;
+                $productSpecialPrice = empty($productSpecialPrice) ? $roundePrice : number_format($productSpecialPrice, 2, '.', '');
                 
                 $product = [
                     'product id' => $product['product_id'],
-                    'product name' => $product['name'],
-                    'product url' => str_replace(" ", "%20", $productUrl),
-                    'image url' => str_replace(" ", "%20", $productImage),
+                    'product name' => str_replace(["''",''],['inch',''],$product['name']),
+                    'product url' => str_replace($this->replace[0], $this->replace[1], $productUrl),
+                    'image url' => str_replace($this->replace[0], $this->replace[1], $productImage),
                     'stock' => $product['quantity'],
                     'price' => $roundePrice,
                     'sale price' => $productSpecialPrice,
@@ -168,6 +172,8 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
                 fputcsv($outstream, $product, ',', '"');
             }
+            $params['start'] += $params['limit'];
+        }
         fclose($outstream);
         die;
 
@@ -197,13 +203,13 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
         $reCategories = [];
         foreach ($categories as $category) {
-
             $reCategories[$category['category_id']] = $this->model_catalog_category->getCategory($category['category_id'])['name'];
+            //$reCategories[] = $this->model_catalog_category->getCategory($category['category_id'])['name'];
 
         }
 
+        //return implode(' | ', $reCategories);
         return $reCategories;
-
     }
 
     /**
@@ -217,9 +223,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
         $productimages = [];
         foreach ($images as $image) {
-
             $productimages[] = str_replace(' ', '%20', $base_url . 'image/' . $image['image']);
-
         }
 
         return $productimages;
@@ -418,6 +422,15 @@ class ControllerExtensionModuleRetargeting extends Controller {
              * STEP 1: check $_POST and validate the API Key
              * -------------------------------------------------------------
              */
+
+            /*
+            include_once 'Retargeting_REST_API_Client.php';
+            $client = new Retargeting_REST_API_Client($data['api_key_field'], $data['api_secret_field']);
+            $client->setResponseFormat("json");
+            $client->setDecoding(false);
+            $client->setApiVersion('1.0');
+            $client->setApiUri('https://retargeting.ro/api');
+            */
 
             /* Check and adjust the incoming values */
             $discount_type = (isset($_GET['type'])) ? (filter_var($_GET['type'], FILTER_SANITIZE_NUMBER_INT)) : 'Received other than int';
