@@ -474,6 +474,11 @@ class JS
      */
     public function saveOrder()
     {
+        if (isset($this->session->data['order_id']) && empty($this->instanceOfThis->session->data['retargeting_save_order']))
+        {
+            $this->instanceOfThis->session->data['retargeting_save_order'] = $this->session->data['order_id'];
+        }
+        
         if ((isset($this->instanceOfThis->session->data['retargeting_save_order']) && !empty($this->instanceOfThis->session->data['retargeting_save_order'])))
         {
             $orderId = $this->instanceOfThis->session->data['retargeting_save_order'];
