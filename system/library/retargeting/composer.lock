@@ -1,0 +1,60 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "62af6d37f42da1267d85bbe894cc3265",
+    "packages": [
+        {
+            "name": "retargeting/retargeting-sdk",
+            "version": "dev-development",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/retargeting/php-sdk.git",
+                "reference": "6320b5ea7e092007057594ef9f4ffca5ee130092"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/retargeting/php-sdk/zipball/6320b5ea7e092007057594ef9f4ffca5ee130092",
+                "reference": "6320b5ea7e092007057594ef9f4ffca5ee130092",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "ext-openssl": "*",
+                "php": ">=5.6.0"
+            },
+            "require-dev": {
+                "fzaninotto/faker": "^1.4",
+                "mockery/mockery": "^1.0",
+                "phpunit/phpunit": "8.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "RetargetingSDK\\": "lib"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "authors": [
+                {
+                    "name": "Retargeting Team",
+                    "email": "info@retargeting.biz"
+                }
+            ],
+            "description": "Retargeting SDK",
+            "time": "2019-05-06T11:13:43+00:00"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {
+        "retargeting/retargeting-sdk": 20
+    },
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": [],
+    "platform-dev": []
+}

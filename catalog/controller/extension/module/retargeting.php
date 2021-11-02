@@ -11,11 +11,6 @@ require_once 'retargetingjs.php';
 
 class ControllerExtensionModuleRetargeting extends Controller {
 
-    public $replace = [
-        ['amp;'," "," ","","|"],
-        ['',"%20","%C2%A0","%C2%96","%7C"]
-    ];
-    
     /**
      * Get current page
      * @return bool
@@ -160,8 +155,8 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 $product = [
                     'product id' => $product['product_id'],
                     'product name' => str_replace(["''",''],['inch',''],$product['name']),
-                    'product url' => str_replace($this->replace[0], $this->replace[1], $productUrl),
-                    'image url' => str_replace($this->replace[0], $this->replace[1], $productImage),
+                    'product url' => $this->fixURL($productUrl),
+                    'image url' => $this->fixURL($productImage),
                     'stock' => $product['quantity'],
                     'price' => $roundePrice,
                     'sale price' => $productSpecialPrice,
@@ -177,6 +172,17 @@ class ControllerExtensionModuleRetargeting extends Controller {
         fclose($outstream);
         die;
 
+    }
+
+    public function fixURL($url)
+    {
+        $newURL = [];
+        foreach (explode("/",$url) as $k=>$v ){
+            if ($k > 2) {
+                $newURL[$k] = urlencode($v);
+            }
+        }
+        return implode("/",$newURL);
     }
 
     /**
@@ -233,8 +239,6 @@ class ControllerExtensionModuleRetargeting extends Controller {
     public function initProductsFeed()
     {
         //Get configs
-        $data = (new Configs($this))->getConfigs();
-
         if (isset($_GET))
         {
             //Products Feed
