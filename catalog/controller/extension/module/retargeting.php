@@ -176,8 +176,8 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
     public function fixURL($url)
     {
-        $newURL = [];
-        foreach (explode("/",$url) as $k=>$v ){
+        $newURL = explode("/",$url);
+        foreach ($newURL as $k=>$v ){
             if ($k > 2) {
                 $newURL[$k] = urlencode($v);
             }
