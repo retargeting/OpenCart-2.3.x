@@ -194,7 +194,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
         return [
             'margin' => null,
             'categories' => $this->refactorCategories($params['categories']),
-            'media gallery' => $this->getImagesOfProduct($params['product_id'], $params['base_url']),
+            'media_gallery' => $this->getImagesOfProduct($params['product_id'], $params['base_url']),
             'in_supplier_stock' => null,
             'variations' => []
         ];
