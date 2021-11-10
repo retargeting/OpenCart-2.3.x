@@ -174,15 +174,30 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
     }
 
+    private $checkHTTP = null;
+
     public function fixURL($url)
     {
-        $newURL = explode("/",$url);
+        $new_URL = explode("?", $url, 2);
+        $newURL = explode("/",$new_URL[0]);
+
+        if ($this->checkHTTP === null) {
+            $this->checkHTTP = !empty(array_intersect(["https:","http:"], $newURL));
+        } 
+        
         foreach ($newURL as $k=>$v ){
-            if ($k > 2) {
+            if (!$this->checkHTTP || $this->checkHTTP && $k > 2) {
                 $newURL[$k] = urlencode($v);
             }
         }
-        return implode("/",$newURL);
+
+        if (isset($new_URL[1])) {
+            $new_URL[0] = implode("/",$newURL);
+            $new_URL[1] = str_replace("&amp;","&",$new_URL[1]);
+            return implode("?", $new_URL);
+        } else {
+            return implode("/",$newURL);
+        }
     }
 
     /**
