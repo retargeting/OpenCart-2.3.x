@@ -178,7 +178,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
     public function fixURL($url)
     {
-        if (!filter_var($url, FILTER_VALIDATE_URL)) {
+        if (!filter_var($url, FILTER_VALIDATE_URL) && !strpos($url, "%20")) {
             $new_URL = explode("?", $url, 2);
             $newURL = explode("/",$new_URL[0]);
     
