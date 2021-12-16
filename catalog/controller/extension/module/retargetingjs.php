@@ -256,11 +256,18 @@ class JS
      */
     public function getProductPrice($price, $taxClassId)
     {
-        return $this->instanceOfThis->currency->format($this->instanceOfThis->tax->calculate(
-            $price,
-            $taxClassId,
-            $this->instanceOfThis->config->get('config_tax')
-        ), $this->instanceOfThis->session->data['currency']);
+        return (float) number_format(
+            str_replace(',','.',
+                $this->instanceOfThis->currency->format(
+                    $this->instanceOfThis->tax->calculate(
+                        $price,
+                        $taxClassId,
+                        $this->instanceOfThis->config->get('config_tax')
+                    ),
+                    $this->instanceOfThis->session->data['currency']
+                )
+            ),
+        2, '.', '');
     }
 
     /**
