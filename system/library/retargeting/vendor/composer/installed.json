@@ -1,0 +1,44 @@
+[
+    {
+        "name": "retargeting/retargeting-sdk",
+        "version": "dev-development",
+        "version_normalized": "dev-development",
+        "source": {
+            "type": "git",
+            "url": "https://github.com/retargeting/php-sdk.git",
+            "reference": "6320b5ea7e092007057594ef9f4ffca5ee130092"
+        },
+        "dist": {
+            "type": "zip",
+            "url": "https://api.github.com/repos/retargeting/php-sdk/zipball/6320b5ea7e092007057594ef9f4ffca5ee130092",
+            "reference": "6320b5ea7e092007057594ef9f4ffca5ee130092",
+            "shasum": ""
+        },
+        "require": {
+            "ext-json": "*",
+            "ext-openssl": "*",
+            "php": ">=5.6.0"
+        },
+        "require-dev": {
+            "fzaninotto/faker": "^1.4",
+            "mockery/mockery": "^1.0",
+            "phpunit/phpunit": "8.0"
+        },
+        "time": "2019-05-06T11:13:43+00:00",
+        "type": "library",
+        "installation-source": "source",
+        "autoload": {
+            "psr-4": {
+                "RetargetingSDK\\": "lib"
+            }
+        },
+        "notification-url": "https://packagist.org/downloads/",
+        "authors": [
+            {
+                "name": "Retargeting Team",
+                "email": "info@retargeting.biz"
+            }
+        ],
+        "description": "Retargeting SDK"
+    }
+]

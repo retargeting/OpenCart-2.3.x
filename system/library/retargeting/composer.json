@@ -1,0 +1,14 @@
+{
+    "name": "retargeting/retargeting-sdk-open-cart",
+    "description": "Retargeting SDK",
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "retargeting",
+            "email": "info@retargeting.biz"
+        }
+    ],
+    "require": {
+        "retargeting/retargeting-sdk": "dev-development"
+    }
+}

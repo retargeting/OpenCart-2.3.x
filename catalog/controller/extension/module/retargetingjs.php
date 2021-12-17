@@ -109,8 +109,6 @@ class JS
             }
 
             $this->data .= "
-                var _ra = _ra || {};
-                
                 _ra.setEmailInfo = $objSetEmail;
          
                 if (_ra.ready !== undefined) {
@@ -201,9 +199,7 @@ class JS
         }
 
         $this->data .= "
-             /* --- sendCategory --- */
-            var _ra = _ra || {};
-    
+             /* --- sendCategory --- */    
             _ra.sendCategoryInfo = $objCategory;
             
             if (_ra.ready !== undefined) {
@@ -239,8 +235,6 @@ class JS
             }
 
             $this->data .= "
-                    var _ra = _ra || {};
-
                     _ra.sendBrandInfo = $objSetBrand;
 
                     if (_ra.ready !== undefined) {
@@ -260,11 +254,18 @@ class JS
      */
     public function getProductPrice($price, $taxClassId)
     {
-        return $this->instanceOfThis->currency->format($this->instanceOfThis->tax->calculate(
-            $price,
-            $taxClassId,
-            $this->instanceOfThis->config->get('config_tax')
-        ), $this->instanceOfThis->session->data['currency']);
+        return (float) number_format(
+            str_replace(',','.',
+                $this->instanceOfThis->currency->format(
+                    $this->instanceOfThis->tax->calculate(
+                        $price,
+                        $taxClassId,
+                        $this->instanceOfThis->config->get('config_tax')
+                    ),
+                    $this->instanceOfThis->session->data['currency']
+                )
+            ),
+        2, '.', '');
     }
 
     /**
@@ -324,8 +325,6 @@ class JS
             }
 
             $this->data .= "
-            var _ra = _ra || {};
-
             _ra.sendProductInfo = $objProduct;
  
             if (_ra.ready !== undefined) {
@@ -354,15 +353,11 @@ class JS
             // addToCart
             $this->data .= "
             /* --- addToCart --- */
-            
-            document.addEventListener(\"DOMContentLoaded\", function(event) { 
-                
                 var retargeting_addToCart = \"{$retargetingAddToCart}\";
                 
                 document.querySelector(retargeting_addToCart).addEventListener('click', function (e) {
                     _ra.addToCart({$product['product_id']}, " . (($product['quantity'] > 0) ? 1 : 0) . ", false, function(){console.log('addToCart fired!')});
                 });
-            });
         ";
 
             //addToWishlistInfo
@@ -384,8 +379,6 @@ class JS
                     }
 
                     $addToWishlist = "
-                    var _ra = _ra || {};
-                    
                     _ra.addToWishlistInfo = {
                         'product_id': {$product_id_in_wishlist}
                     };
@@ -430,8 +423,6 @@ class JS
     {
         $this->data .= "
             /* --- visitHelpPage --- */
-            var _ra = _ra || {};
-
             _ra.visitHelpPage = {'visit': true};
             
             if (_ra.ready !== undefined) {
@@ -463,8 +454,6 @@ class JS
 
             $this->data .= "
                 /* --- checkoutIds --- */
-                var _ra = _ra || {};
-
                 _ra.checkoutIdsInfo = [
                     $productsIDs
                 ];
@@ -486,6 +475,11 @@ class JS
      */
     public function saveOrder()
     {
+        if (isset($this->session->data['order_id']) && empty($this->instanceOfThis->session->data['retargeting_save_order']))
+        {
+            $this->instanceOfThis->session->data['retargeting_save_order'] = $this->session->data['order_id'];
+        }
+
         if ((isset($this->instanceOfThis->session->data['retargeting_save_order']) && !empty($this->instanceOfThis->session->data['retargeting_save_order'])))
         {
             $orderId = $this->instanceOfThis->session->data['retargeting_save_order'];
@@ -523,8 +517,6 @@ class JS
             }
 
             $this->data .= "
-                var _ra = _ra || {};
-
                 _ra.saveOrderInfo = $objSaveOrder;
             ";
 
@@ -691,6 +683,12 @@ class JS
                     'name' => $subCategoryDetails['name'],
                     'parent' => $subCategoryDetails['parent_id'] !== '0' ? $subCategoryDetails['parent_id'] : false
                 ];
+            } else {
+                $catDetails['parent_id'] = 0;
+            } 
+
+            if(!isset($catDetails['category_id']) || !isset($catDetails['parent_id'])){
+                return $formatCategory;
             }
 
             $formatCategory[] = [
