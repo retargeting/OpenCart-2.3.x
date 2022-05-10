@@ -769,7 +769,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 'id' => 'Root',
                 'name' => 'Root',
                 'parent' => false,
-                'breadcrumb' => array()
+                'breadcrumb' => array()));
 
              $data['sendProduct'] = "
                                      _ra.sendProductInfo = {
