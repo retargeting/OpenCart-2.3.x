@@ -61,6 +61,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $data['entry_token']  = $this->language->get('entry_token');
         $data['button_save']    = $this->language->get('button_save');
         $data['button_cancel']  = $this->language->get('button_cancel');
+        $data['rtg_version']      = $this->language->get('rtg_version');
         /* --- END --- */
 
 

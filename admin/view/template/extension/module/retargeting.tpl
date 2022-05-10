@@ -31,7 +31,7 @@
 
             <!-- Module inline title -->
             <div class="panel-heading">
-                <h3 class="panel-title"><i class="fa fa-paper-plane"></i> <?php echo $text_edit; ?></h3>
+                <h3 class="panel-title"><i class="fa fa-paper-plane"></i> <?php echo $text_edit; ?> - <?php echo "v".$rtg_version; ?></h3>
             </div>
 
             <div class="panel-body">
@@ -39,7 +39,7 @@
                 <!-- Retargeting logo/img -->
                 <div class="row" style="min-height:45px;">
                     <div class="col-md-12">
-                        <img src="https://retargeting.ro/static/images/i/logo.png" class="img-responsive" alt="Retargeting Module for OpenCart 2.x" />
+                        <img src="https://retargeting.biz/img/logos/LOGO_retargeting.svg" style="height:70px;padding:10px;" class="img-responsive" alt="Retargeting Module for OpenCart 2.x" />
                     </div>
                 </div>
 

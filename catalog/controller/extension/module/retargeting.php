@@ -81,7 +81,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
      * @throws Exception
      */
 
-    public function getProductsFeed($start, $limit)
+    public function getProductsFeed($start=0, $limit=250)
     {
         header("Content-Disposition: attachment; filename=retargeting.csv");
         header("Content-type: text/csv");
@@ -586,7 +586,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $data['wishlist'] = !empty($this->session->data['wishlist']) ? $this->session->data['wishlist'] : false;
         $data['current_page'] = isset($this->request->get['route']) ? $this->request->get['route'] : false;
         $data['current_category'] = isset($this->request->get['path']) ? explode('_', $this->request->get['path']) : '';
-        $data['count_categories'] = isset($data['current_category']) ? count($data['current_category']) : 0;
+        $data['count_categories'] = isset($data['current_category']) && is_array($data['current_category']) ? count($data['current_category']) : 0;
         $data['js_output'] = "/* --- START Retargeting --- */\n\n";
         /* --- END pre-data processing  --- */
 
@@ -769,7 +769,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 'id' => 'Root',
                 'name' => 'Root',
                 'parent' => false,
-                'breadcrumb' => array()
+                'breadcrumb' => array()));
 
              $data['sendProduct'] = "
                                      _ra.sendProductInfo = {
@@ -1123,7 +1123,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 /*
                 * REST API Save Order
                 */
-
+/*
                 $apiKey = $this->config->get('retargeting_apikey');
                 $restApiKey = $this->config->get('retargeting_token');
 
@@ -1154,13 +1154,14 @@ class ControllerExtensionModuleRetargeting extends Controller {
                             'price'=> $orderedProduct['price'],
                             'variation_code'=> ''
                         );
-                    }
-
+                    } */
+/*
                     $orderClient = new Retargeting_REST_API_Client($restApiKey);
                     $orderClient->setResponseFormat("json");
                     $orderClient->setDecoding(false);
                     $response = $orderClient->order->save($orderInfo,$orderProducts);
-                }
+
+                }*/
 /*
                 $orderClient = new Retargeting_REST_API_Client($restApiKey);
                 $orderClient->setResponseFormat("json");
