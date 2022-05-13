@@ -220,6 +220,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $this->db->query("DELETE FROM " . DB_PREFIX . "layout_module WHERE code = 'retargeting'");
         $this->model_setting_setting->deleteSetting('retargeting');
         $this->model_extension_event->deleteEvent('retargeting');
+        $this->model_extension_event->deleteEvent('retargeting_add_order');
 
     }
 
