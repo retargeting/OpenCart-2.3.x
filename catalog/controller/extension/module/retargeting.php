@@ -662,7 +662,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 for ($i = count($data['current_category']) - 1; $i > 0; $i--) {
                     $category_id = $data['current_category'][$i];
                     $category_info = $this->model_catalog_category->getCategory($category_id);
-                    $encoded_category_info_name = htmlspecialchars($category_info['name']);
+                    $encoded_category_info_name = $category_info['name'];
                     $data['sendCategory'] .= "
                             'id': {$category_id},
                             'name': '{$encoded_category_info_name}',
@@ -704,7 +704,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
                 $data['category_id'] = $data['current_category'][0];
                 $data['category_info'] = $this->model_catalog_category->getCategory($data['category_id']);
-                $encoded_data_category_info_name = htmlspecialchars($data['category_info']['name']);
+                $encoded_data_category_info_name = $data['category_info']['name'];
                 $data['sendCategory'] .= "
                                                 'id': {$data['category_id']},
                                                 'name': '{$encoded_data_category_info_name}',
@@ -738,7 +738,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             if (isset($this->request->get['manufacturer_id']) && !empty($this->request->get['manufacturer_id'])) {
                 $data['brand_id'] = $this->request->get['manufacturer_id'];
                 $data['brand_name'] = $this->model_catalog_manufacturer->getManufacturer($this->request->get['manufacturer_id']);
-                $encoded_data_brand_name = htmlspecialchars($data['brand_name']['name']);
+                $encoded_data_brand_name = $data['brand_name']['name'];
                 $data['sendBrand'] = "
                                             _ra.sendBrandInfo = {
                                                                 'id': {$data['brand_id']},
