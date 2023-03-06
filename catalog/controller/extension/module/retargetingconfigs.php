@@ -37,12 +37,13 @@ class Configs
 
         $this->getModelsToLoad($models);
 
+        $data['status']                   = (bool) $this->instanceOfThis->config->get('module_retargeting_status');
         $data['api_key_field']            = $this->instanceOfThis->config->get('module_retargeting_apikey');
         $data['api_secret_field']         = $this->instanceOfThis->config->get('module_retargeting_token');
         $data['retargeting_setEmail']     = htmlspecialchars_decode($this->instanceOfThis->config->get('module_retargeting_setEmail'));
         $data['retargeting_addToCart']    = htmlspecialchars_decode($this->instanceOfThis->config->get('module_retargeting_addToCart'));
         $data['retargeting_clickImage']   = htmlspecialchars_decode($this->instanceOfThis->config->get('module_retargeting_clickImage'));
-        $data['retargeting_commentOnProduct']   = htmlspecialchars_decode($this->instanceOfThis->config->get('module_retargeting_commentOnProduct'));
+        // $data['retargeting_commentOnProduct']   = htmlspecialchars_decode($this->instanceOfThis->config->get('module_retargeting_commentOnProduct'));
 
         return $data;
     }

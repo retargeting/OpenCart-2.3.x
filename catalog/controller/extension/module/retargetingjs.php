@@ -395,12 +395,12 @@ class JS
             }
 
             //commentOnProduct
-            $retargetingCommentOnProduct = (new Configs($this->instanceOfThis))->getConfigs()['retargeting_commentOnProduct'];
+            //$retargetingCommentOnProduct = (new Configs($this->instanceOfThis))->getConfigs()['retargeting_commentOnProduct'];
 
-            if (!empty($retargetingCommentOnProduct))
+            /*if (!empty($retargetingCommentOnProduct))
             {
                 $this->data .= "
-                /* -- commentOnProduct -- */
+                /* -- commentOnProduct -- * /
                 jQuery(document).ready(function($){
                     if ($(\"{$retargetingCommentOnProduct}\").length > 0) {
                         $(\"{$retargetingCommentOnProduct}\").click(function(){
@@ -409,7 +409,7 @@ class JS
                     }
                 });
               ";
-            }
+            }*/
         }
 
         return $this->data;
