@@ -50,12 +50,12 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 0 => 'Out of Stock',
                 1 => 'In Stock'
             )
-        ),/*
+        ),
         'cron' => array(
             'label' => 'Static Feed',
             'type' => 'select',
             'description' => '<b>Set "Yes" to generate static Feed every 3 Hours - {{ site_url }}/retargeting.csv</b>{{ cron }}'
-        ),*/
+        ),
         'rec_status' => array(
             'label' => 'Recommendation Engine',
             'type' => 'select',
@@ -357,7 +357,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $this->load->controller('common/footer');
 
         if (isset($data[self::$prefix.'cron']) && $data[self::$prefix.'cron'] == 1) {
-            // $dir = dirname(DIR_APPLICATION);
+//             $dir = dirname(DIR_APPLICATION);
             $data['cron'] = "<br /><b>Please make sure you have this cronJob in your Hosting CronJob List <br />
 <pre style='color:red'>0 */3 * * * curl --silent {$this->getSiteUrl()}/?csv=retargeting-cron </pre></b>";
         } else {
