@@ -81,10 +81,12 @@ class ControllerExtensionModuleRetargeting extends Controller {
      * @throws Exception
      */
 
-    public function getProductsFeed($start=0, $limit=250)
+    public function getProductsFeed($start=0, $limit=250, $cron = false)
     {
-        header("Content-Disposition: attachment; filename=retargeting.csv");
-        header("Content-type: text/csv");
+        if (!$cron) {
+            header("Content-Disposition: attachment; filename=retargeting.csv");
+            header("Content-type: text/csv");
+        }
 
         $params = [
             'start' => $start,
@@ -95,7 +97,14 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
         $productsLoop = true;
 
-        $outstream = fopen('php://output', 'w');
+        if ($cron) {
+            $dir = dirname(DIR_APPLICATION);
+            $file = 'retargeting';
+            $tmp = $file.'.'.time();
+            $outstream = fopen($dir.'/'.$tmp.'.csv', 'w');
+        } else {
+            $outstream = fopen('php://output', 'w');
+        }
 
         fputcsv($outstream, [
             'product id',
@@ -208,6 +217,22 @@ class ControllerExtensionModuleRetargeting extends Controller {
         }
       
         fclose($outstream);
+        if ($cron) {
+            try {
+                copy($dir.'/'.$tmp.'.csv', $dir.'/'.$file.'.csv');
+
+                unlink($dir.'/'.$tmp.'.csv');
+
+            } catch (\Exception $e) {
+                header( 'Content-Type: text/json' );
+                echo json_encode( ['status' => 'error'] );
+                die();
+            }
+
+            header( 'Content-Type: text/json' );
+            echo json_encode( ['status' => 'success'] );
+        }
+        
         die;
 
     }
@@ -516,9 +541,66 @@ class ControllerExtensionModuleRetargeting extends Controller {
          * --------------------------------------
          **/
         /* JSON Request intercepted, kill everything else and output */
-        if (isset($_GET['csv']) && $_GET['csv'] === 'retargeting') {
-            $this->getProductsFeed();
-            die();
+        if (isset($_GET)) {
+            //Products Feed
+            if (isset($_GET['csv'])) {
+                header("Expires: Tue, 07 Jul 2001 06:00:00 GMT");
+                header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+                header("Cache-Control: post-check=0, pre-check=0", false);
+                header("Pragma: no-cache");
+
+                $start = isset($_GET['start']) ? $_GET['start'] : 0;
+                $limit = isset($_GET['limit']) ? $_GET['limit'] : 250;
+                /*
+                var_dump($_GET,$opt);
+                die();
+                */
+                if($_GET['csv'] === 'retargeting') {
+                    $this->getProductsFeed($start, $limit);
+                } else if($_GET['csv'] === 'retargeting-cron') {
+                    if ($this->config->get(self::$prefix.'cron') == 1) {
+                        $this->getProductsFeed($start, $limit, true);
+                    } else {
+                        header('Content-Type: application/json');
+                        echo json_encode(
+                            [
+                                'status' => 'cron_inactive',
+                                'data' => [
+                                    'version' => VERSION
+                                ]
+                            ], JSON_PRETTY_PRINT);
+                        die();
+                    }
+                } else if($_GET['csv'] === 'retargeting-bypass') {
+                    $this->getProductsFeed($start, $limit, true);
+                    die();
+                } else if($_GET['csv'] === 'retargeting-data' && isset($_GET['key']) && $data['api_secret_field'] === $_GET['key']) {
+                    $dir = dirname(DIR_APPLICATION);
+
+                    $data['cron'] = "0 */3 * * * /usr/bin/php -q ".$dir."/index.php --csv retargeting-cron > ".$dir."/rtg.cron.log";
+                    $data['cron2'] = "0 */3 * * * curl --silent ".HTTPS_SERVER."?csv=retargeting-cron > ".$dir."/rtg.cron.log";
+
+                    header('Content-Type: application/json');
+                    echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+                    die();
+                }
+
+            }
+
+            //Plugin Version
+            if (isset($_GET['json']) && $_GET['json'] === 'version')
+            {
+                header('Content-Type: application/json');
+
+                if(VERSION)
+                {
+                    echo json_encode([ 'data' => [
+                        'version' => VERSION
+                    ]], JSON_PRETTY_PRINT);
+
+                    die();
+                }
+            }
         }
         /* --- END PRODUCTS FEED  --- */
 
