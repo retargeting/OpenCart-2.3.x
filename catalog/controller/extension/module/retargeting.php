@@ -160,8 +160,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                     'categories' => $this->model_catalog_product->getCategories($product['product_id']),
                     'product_id' => $product['product_id'],
                     'base_url'   => $baseUrl,
-                    'product_weight' => number_format($this->formatWeightToKg($this->getWeightClassForProduct($product),$product['weight']), 2, '.', '') > 0
-                        ? number_format($this->formatWeightToKg($this->getWeightClassForProduct($product),$product['weight']), 2, '.', '') : 0.01,
+                    'product_weight' => $this->getProductWeight($product),
                 ]);
 
                 if (!empty($product['image'])) {
@@ -302,6 +301,11 @@ class ControllerExtensionModuleRetargeting extends Controller {
             return $weight/35.27396195;
         }
         return $weight;
+    }
+
+    private function getProductWeight($product) {
+        return number_format($this->formatWeightToKg($this->getWeightClassForProduct($product),$product['weight']), 2, '.', '') > 0
+            ? number_format($this->formatWeightToKg($this->getWeightClassForProduct($product),$product['weight']), 2, '.', '') : 0.01;
     }
 
     /**
