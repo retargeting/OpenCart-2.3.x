@@ -305,7 +305,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
     private function getProductWeight($product) {
         return number_format($this->formatWeightToKg($this->getWeightClassForProduct($product),$product['weight']), 2, '.', '') > 0
-            ? number_format($this->formatWeightToKg($this->getWeightClassForProduct($product),$product['weight']), 2, '.', '') : 0.01;
+            ? (float)number_format($this->formatWeightToKg($this->getWeightClassForProduct($product),$product['weight']), 2, '.', '') : 0.01;
     }
 
     /**
