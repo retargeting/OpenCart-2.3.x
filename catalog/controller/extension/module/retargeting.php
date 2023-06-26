@@ -159,7 +159,8 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 $extraData = $this->getExtraData([
                     'categories' => $this->model_catalog_product->getCategories($product['product_id']),
                     'product_id' => $product['product_id'],
-                    'base_url'   => $baseUrl
+                    'base_url'   => $baseUrl,
+                    'product_weight' => $this->getProductWeight($product),
                 ]);
 
                 if (!empty($product['image'])) {
@@ -215,7 +216,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             $params['start'] += $params['limit'];
 
         }
-      
+
         fclose($outstream);
         if ($cron) {
             try {
@@ -232,7 +233,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
             header( 'Content-Type: text/json' );
             echo json_encode( ['status' => 'success'] );
         }
-        
+
         die;
 
     }
@@ -244,17 +245,17 @@ class ControllerExtensionModuleRetargeting extends Controller {
         if (!filter_var($url, FILTER_VALIDATE_URL) && !strpos($url, "%20")) {
             $new_URL = explode("?", $url, 2);
             $newURL = explode("/",$new_URL[0]);
-    
+
             if ($this->checkHTTP === null) {
                 $this->checkHTTP = !empty(array_intersect(["https:","http:"], $newURL));
-            } 
-            
+            }
+
             foreach ($newURL as $k=>$v ){
                 if (!$this->checkHTTP || $this->checkHTTP && $k > 2) {
                     $newURL[$k] = rawurlencode($v);
                 }
             }
-    
+
             if (isset($new_URL[1])) {
                 $new_URL[0] = implode("/",$newURL);
                 $new_URL[1] = str_replace("&amp;","&",$new_URL[1]);
@@ -277,10 +278,34 @@ class ControllerExtensionModuleRetargeting extends Controller {
             'categories' => $this->refactorCategories($params['categories']),
             'media gallery' => $this->getImagesOfProduct($params['product_id'], $params['base_url']),
             'in_supplier_stock' => null,
+            'product_weight' => $params['product_weight'],
             'variations' => []
         ];
 
 
+    }
+
+    private function getWeightClassForProduct($product) {
+        $query = $this->db->query("SELECT unit FROM `" . DB_PREFIX . "weight_class_description` WHERE 
+                weight_class_id='".$product['weight_class_id']."'");
+
+        return $query->row['unit'];
+    }
+
+    private function formatWeightToKg($unit,$weight) {
+        if(strtoupper($unit) === "G") {
+            return $weight/1000;
+        }else if(strtoupper($unit) === 'LB') {
+            return $weight*0.45359237;
+        }else if(strtoupper($unit) === 'OZ') {
+            return $weight/35.27396195;
+        }
+        return $weight;
+    }
+
+    private function getProductWeight($product) {
+        return number_format($this->formatWeightToKg($this->getWeightClassForProduct($product),$product['weight']), 2, '.', '') > 0
+            ? floatval(number_format($this->formatWeightToKg($this->getWeightClassForProduct($product),$product['weight']), 2, '.', '')) : 0.01;
     }
 
     /**
@@ -395,7 +420,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
     public static function apistatus() {
         return (bool) self::$ins->config->get(self::$prefix.'status');
     }
-    
+
     public static function cfg($key = 'rec_status') {
         $v = self::$ins->config->get(self::$prefix.$key);
 
@@ -422,7 +447,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
 
         $ActionName = $ActionName === null ? self::$ins->getCurrentPage() : $ActionName;
         $ActionName = $ActionName === false ? 'common/home' : $ActionName;
-        
+
         if (self::apistatus() && self::recstatus()) {
             //$ActionName = self::$_req->getFullActionName();
             if (isset(self::$rec_engine[$ActionName]) || self::is404()) {
@@ -509,7 +534,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $data['retargeting_setEmail'] = htmlspecialchars_decode($this->config->get('retargeting_setEmail'));
         $data['retargeting_addToCart'] = htmlspecialchars_decode($this->config->get('retargeting_addToCart'));
         $data['retargeting_clickImage'] = htmlspecialchars_decode($this->config->get('retargeting_clickImage'));
-        
+
         // $data['retargeting_commentOnProduct'] = htmlspecialchars_decode($this->config->get('retargeting_commentOnProduct'));
         // $data['retargeting_setVariation'] = htmlspecialchars_decode($this->config->get('retargeting_setVariation'));
         /*
@@ -777,7 +802,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
         $data['current_page'] = isset($this->request->get['route']) ? $this->request->get['route'] : false;
         $data['current_category'] = isset($this->request->get['path']) ? explode('_', $this->request->get['path']) : '';
         $data['count_categories'] = is_array($data['current_category']) && isset($data['current_category']) ? count($data['current_category']) : 0;
-        
+
         $data['js_output'] = "/* --- START Retargeting --- */\n\n";
         /* --- END pre-data processing  --- */
         //$data['js_output'] .= "console.log(".json_encode($this->session->data).");";
@@ -960,7 +985,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
                 'parent' => false,
                 'breadcrumb' => array()));
 
-             $data['sendProduct'] = "
+            $data['sendProduct'] = "
                                      _ra.sendProductInfo = {
                                      ";
             $data['sendProduct'] .= "
@@ -1131,21 +1156,21 @@ class ControllerExtensionModuleRetargeting extends Controller {
         /*
          * commentOnProduct ✓
          */
-       /* if ($data['current_page'] === 'product/product') {
-            $commentOnProduct_product_info = $this->request->get['product_id'];
-            $data['commentOnProduct'] = "
-                                        /* -- commentOnProduct -- * /
-                                        jQuery(document).ready(function($){
-                                            if ($(\"{$data['retargeting_commentOnProduct']}\").length > 0) {
-                                                $(\"{$data['retargeting_commentOnProduct']}\").click(function(){
-                                                    _ra.commentOnProduct({$commentOnProduct_product_info}, function() {console.log('commentOnProduct FIRED')});
-                                                });
-                                            }
-                                        });
-                                        ";
+        /* if ($data['current_page'] === 'product/product') {
+             $commentOnProduct_product_info = $this->request->get['product_id'];
+             $data['commentOnProduct'] = "
+                                         /* -- commentOnProduct -- * /
+                                         jQuery(document).ready(function($){
+                                             if ($(\"{$data['retargeting_commentOnProduct']}\").length > 0) {
+                                                 $(\"{$data['retargeting_commentOnProduct']}\").click(function(){
+                                                     _ra.commentOnProduct({$commentOnProduct_product_info}, function() {console.log('commentOnProduct FIRED')});
+                                                 });
+                                             }
+                                         });
+                                         ";
 
-            $data['js_output'] .= $data['commentOnProduct'];
-        }*/
+             $data['js_output'] .= $data['commentOnProduct'];
+         }*/
         /* --- END commentOnProduct  --- */
 
         /*
@@ -1225,7 +1250,7 @@ class ControllerExtensionModuleRetargeting extends Controller {
          * 
          * via pre.order.add event
          */
-        
+
         if ($data['current_page'] === 'checkout/success') {
             if (empty($this->session->data['retargeting_save_order'])) {
                 if(isset($_COOKIE['retargeting_save_order'])) {
@@ -1233,35 +1258,35 @@ class ControllerExtensionModuleRetargeting extends Controller {
                     setcookie('retargeting_save_order', null, time()-3600);
                 }
             }
-            
+
             if (isset($this->session->data['retargeting_save_order']) && !empty($this->session->data['retargeting_save_order'])) {
-            $data['order_id'] = $this->session->data['retargeting_save_order'];
-            $data['order_data'] = $this->model_checkout_order->getOrder($data['order_id']);
+                $data['order_id'] = $this->session->data['retargeting_save_order'];
+                $data['order_data'] = $this->model_checkout_order->getOrder($data['order_id']);
 
-            $order_no = $data['order_data']['order_id'];
-            $lastname = $data['order_data']['lastname'];
-            $firstname = $data['order_data']['firstname'];
-            $email = $data['order_data']['email'];
-            $phone = $data['order_data']['telephone'];
-            $state = $data['order_data']['shipping_country'];
-            $city = $data['order_data']['shipping_city'];
-            $address = $data['order_data']['shipping_address_1'];
+                $order_no = $data['order_data']['order_id'];
+                $lastname = $data['order_data']['lastname'];
+                $firstname = $data['order_data']['firstname'];
+                $email = $data['order_data']['email'];
+                $phone = $data['order_data']['telephone'];
+                $state = $data['order_data']['shipping_country'];
+                $city = $data['order_data']['shipping_city'];
+                $address = $data['order_data']['shipping_address_1'];
 
-            $discount_code = isset($this->session->data['retargeting_discount_code']) ? $this->session->data['retargeting_discount_code'] : 0;
-            $total_discount_value = 0;
-            $shipping_value = 0;
-            $total_order_value = $this->currency->format(
-                $data['order_data']['total'],
-                $data['order_data']['currency_code'],
-                $data['order_data']['currency_value'],
-                false
-            );
+                $discount_code = isset($this->session->data['retargeting_discount_code']) ? $this->session->data['retargeting_discount_code'] : 0;
+                $total_discount_value = 0;
+                $shipping_value = 0;
+                $total_order_value = $this->currency->format(
+                    $data['order_data']['total'],
+                    $data['order_data']['currency_code'],
+                    $data['order_data']['currency_value'],
+                    false
+                );
 
-            // Based on order id, grab the ordered products
-            $order_product_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_product WHERE order_id = '" . (int)$data['order_id'] . "'");
-            $data['order_product_query'] = $order_product_query;
+                // Based on order id, grab the ordered products
+                $order_product_query = $this->db->query("SELECT * FROM " . DB_PREFIX . "order_product WHERE order_id = '" . (int)$data['order_id'] . "'");
+                $data['order_product_query'] = $order_product_query;
 
-            $data['saveOrder'] = "_ra.saveOrderInfo = {
+                $data['saveOrder'] = "_ra.saveOrderInfo = {
                                             'order_no': {$order_no},
                                             'lastname': '{$lastname}',
                                             'firstname': '{$firstname}',
@@ -1348,19 +1373,19 @@ class ControllerExtensionModuleRetargeting extends Controller {
                             'variation_code'=> ''
                         );
                     }
-/*
-                    $orderClient = new Retargeting_REST_API_Client($restApiKey);
-                    $orderClient->setResponseFormat("json");
-                    $orderClient->setDecoding(false);
-                    $response = $orderClient->order->save($orderInfo,$orderProducts);
-*/
+                    /*
+                                        $orderClient = new Retargeting_REST_API_Client($restApiKey);
+                                        $orderClient->setResponseFormat("json");
+                                        $orderClient->setDecoding(false);
+                                        $response = $orderClient->order->save($orderInfo,$orderProducts);
+                    */
                 }
-/*
-                $orderClient = new Retargeting_REST_API_Client($restApiKey);
-                $orderClient->setResponseFormat("json");
-                $orderClient->setDecoding(false);
-                $response = $orderClient->order->save($orderInfo,$orderProducts);
-*/
+                /*
+                                $orderClient = new Retargeting_REST_API_Client($restApiKey);
+                                $orderClient->setResponseFormat("json");
+                                $orderClient->setDecoding(false);
+                                $response = $orderClient->order->save($orderInfo,$orderProducts);
+                */
 
                 unset($this->session->data['retargeting_save_order']);
 
